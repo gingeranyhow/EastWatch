@@ -1,0 +1,27 @@
+{
+  "name": "east-watch",
+  "version": "1.0.0",
+  "description": "search and browse for BetterSearch",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BetterSearch/EastWatch.git"
+  },
+  "keywords": [
+    "elasticsearch"
+  ],
+  "author": "Christi Ginger",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BetterSearch/EastWatch/issues"
+  },
+  "homepage": "https://github.com/BetterSearch/EastWatch#readme",
+  "dependencies": {
+    "elasticsearch": "^14.0.0",
+    "koa": "^2.4.1"
+  }
+}

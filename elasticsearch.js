@@ -47,7 +47,7 @@ let baseSearch = (input) => {
       return hits;
     })
     .catch((err) => {
-      console.trace(error.message); 
+      console.trace(err.message); 
     });
 };
 

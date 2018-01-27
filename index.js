@@ -10,30 +10,50 @@ const PORT = 3000;
 //   ctx.body = 'Hello Koa';
 // });
 
-router.get('/exists', (ctx, next) => {
-  // ctx.body = 'Here search';
-  // ctx.router available
-  return elastic.indexExists('shake*')
-    .then((result) => { 
-      ctx.status = 200;
-      ctx.body = result;
-      //next();
-    })
-    .catch((err) => {
-      console.error(err);
-      ctx.body = 'Sorry, error!';
-    });
+// x-response-time
 
-  // ctx => {
-  //   console.log(ctx.user);
-  // };
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  await next();
+  const ms = Date.now() - start;
+  ctx.set('X-Response-Time', `${ms}ms`);
 });
 
+// logger
+
+app.use(async (ctx, next) => {
+  const start = Date.now();
+  await next();
+  const ms = Date.now() - start;
+  console.log(`${ctx.method} ${ctx.url} - ${ms}`);
+});
+
+// testing router
+
+// router.get('/exists', (ctx, next) => {
+//   return elastic.indexExists('shake*')
+//     .then((result) => { 
+//       ctx.status = 200;
+//       ctx.body = result;
+//       //next();
+//     })
+//     .catch((err) => {
+//       console.error(err);
+//       ctx.body = 'Sorry, error!';
+//     });
+// });
+
+// search handler
+
 router.get('/search', (ctx, next) => {
+  console.log(ctx.query.query);
   let query = 'peace';
-  // ctx.body = 'Here search';
-  // ctx.router available
-  return elastic.baseSearch(query)
+  if (!ctx.query.query) {
+    ctx.body = 'TODO:Handle this as a bad request error or return trending';
+    return;
+  }
+  
+  return elastic.baseSearch(ctx.query.query)
     .then((result) => { 
       ctx.body = result;
     })

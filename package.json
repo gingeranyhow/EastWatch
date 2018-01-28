@@ -22,7 +22,10 @@
   },
   "homepage": "https://github.com/BetterSearch/EastWatch#readme",
   "dependencies": {
+    "axios": "^0.17.1",
+    "dotenv": "^4.0.0",
     "elasticsearch": "^14.0.0",
+    "faker": "^4.1.0",
     "koa": "^2.4.1"
   }
 }

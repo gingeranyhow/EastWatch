@@ -30,8 +30,9 @@ coverage
 # Compiled Dirs (http://nodejs.org/api/addons.html)
 build/
 dist/
-data_generation/ten-million.json
+data_generation/fulltest.json
 data_generation/search-terms.txt
+data_generation/test.json
 
 # Dependency directorys
 # Deployed apps should consider commenting these lines out:

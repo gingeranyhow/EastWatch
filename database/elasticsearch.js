@@ -5,6 +5,9 @@ var client = new elasticsearch.Client({
   log: 'info'
 });
 
+let index = 'bettersearch';
+let type = 'video';
+
 client.ping({
   requestTimeout: 30000,
 }, function (error) {
@@ -31,13 +34,28 @@ exports.indexExists = indexExists;
 * check if the index exists
 */
 
+let lookupById = (id) => {
+  return client.get({
+    index: index,
+    type: 'video',
+    id: id
+  })
+    .then(body => {
+      let video = body._source;
+      return body._source;
+    })
+    .catch(err => {
+      console.trace(err.message); 
+    });
+};
+
 let baseSearch = (input) => {  
   return client.search({
-    index: 'shake*',
+    index: 'bettersearch',
     body: {
       query: {
         match: {
-          text_entry: input
+          title: input
         }
       }
     }
@@ -52,3 +70,4 @@ let baseSearch = (input) => {
 };
 
 exports.baseSearch = baseSearch;
+exports.lookupById = lookupById;

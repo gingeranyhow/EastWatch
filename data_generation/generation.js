@@ -1,29 +1,29 @@
 require('dotenv').config();
 const axios = require('axios');
 var faker = require('faker');
-var fs = require('fs');
 let key = process.env.YOUTUBE_API_KEY;
+var Promise = require('bluebird');
+var fs = Promise.promisifyAll(require('fs'));
 
-/* SET NEW */
-
-let nextId = 1;
 
 /* FUNCTIONS */
 
-let formatVideos = (videoArray, nextId) => {
+let formatAndWriteVideos = (videoArray, nextId) => {
   var stream = fs.createWriteStream('data_generation/ten-million.json', {flags: 'a'});
-  videoArray.forEach((video) => {
-    
-    let bias = Math.random();
-    let number = Math.random();
-    let random = bias > .2 ? Math.floor(number * 10000) : Math.floor(number * 100000000);
 
-    let JSON_elastic = {"index":{"_index":"bettersearch","_id": nextId - 1}};
+  videoArray.forEach((video) => {
+    let biasToViral = Math.random();
+    let randomViews = biasToViral > .85 
+      ? Math.floor(Math.random() * 50000000)
+      : Math.floor(Math.random() * 100000);
+
+    let JSON_elastic = {'index': {'_index': 'bettersearch', '_id': nextId - 1}};
 
     let JSON_output = {
       type: 'video',
       video_id: nextId,
-      views: random,
+      views: randomViews,
+      title: video.snippet.title,
       description: video.snippet.description,
       published_at: video.snippet.publishedAt,
       thumbnails: video.snippet.thumbnails,
@@ -36,6 +36,7 @@ let formatVideos = (videoArray, nextId) => {
     nextId++;
   });
   stream.end();
+  return nextId;  
 };
 
 var searchYouTube = ({query, max}) => {
@@ -48,35 +49,41 @@ var searchYouTube = ({query, max}) => {
     type: 'video'
   };
 
-  axios.get('https://www.googleapis.com/youtube/v3/search', {params: options})
-    .then((results) => {
-      console.log('back from API', results.data.items[0]);
-      formatVideos(results.data.items, nextId);
-    })
-    .catch((err) => {
-      console.error(err.response);
-    });
+  return axios.get('https://www.googleapis.com/youtube/v3/search', {params: options});
 };
 
+// My actual work
+let nextId = 50242;
+let rounds = 1;
 
+for (var i = 0; i < rounds; i++) {
+  let breakLoop;
+  let fakeWord = faker.random.words();
+  // let fakeWord = 'corgis'
+  searchYouTube({query: fakeWord, max: 50})
+    .then(results => {
+      return formatAndWriteVideos(results.data.items, nextId);
+    })
+    .then(updatedId => {
+      nextId = updatedId;
+    })
+    .then(() => {
+      return fs.appendFileAsync('data_generation/search-terms.txt', fakeWord + '\n');
+    })
+    .catch(err => {
+      console.error(err);
+      breakLoop = true;
+    });
 
-let fakeWord = faker.random.words();
-fs.appendFile('data_generation/search-terms.txt', fakeWord + '\n', (err) => {
-  if (err) { console.log(err); }
-});
-
-
-
-searchYouTube({
-  query: fakeWord,
-  max: 10});
-
+  if (breakLoop) {
+    break;
+  }
+}
 
 
 // order=date&type=video&key={YOUR_API_KEY}
 // other ways to order
 // https://developers.google.com/youtube/v3/docs/search/list
-
 
 // let test = [ { kind: 'youtube#searchResult',
 //     etag: '"Wu2llbfqCdxIVjGbVPm2DslKPCA/lb0X_i--QMBe_raq1JGJm0zIkWo"',

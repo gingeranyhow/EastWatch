@@ -1,6 +1,7 @@
 // Elastic Search Schema
 
-module.exports.videos = {
+PUT /bettersearch
+{
   "settings" : {
     "number_of_shards" : 5, 
     "number_of_replicas" : 1 
@@ -12,24 +13,58 @@ module.exports.videos = {
         "views": { "type" : "long" },
         "title" : { "type" : "text" },
         "description" : { "type" : "text" },
-        "published_at" : { "type" : "date" },
         "published_at" : { 
           "type" : "date",
-          "format": "yyyy-MM-dd HH:mm:ss"
+          "format": "date_time"
         },
         "thumbnails" : { 
           "type": "object", 
           "enabled" : false 
         },
+        "channel_title":{
+          "type" : "text"
+        },
         "channel_id" : { 
-          "type" : "integer",
-          "index" : "false"
+          "type" : "text",
+          "index" : false
         },
         "duration":  {
-          "type" : "integer",
-          "index" : "false"
+          "type" : "text",
+          "index" : false
         }
       }
     }
   }
-};
+}
+
+// GET /shakespeare/_search
+// { 
+//   "query": {
+//     "match": {
+//       "text_entry": "peace"
+//     }
+//   }
+// }
+
+// curl -X PUT \
+//   http://localhost:9200/persons/ \
+//   -H 'content-type: application/json' \
+//   -d '{
+//     "mappings":{
+//         "person":{
+//             "properties":{
+//                 "name":{
+//                     "type":"string"
+//                 },
+//                 "suggest":{
+//                     "type":"completion"
+//                 }
+//             }
+//         }
+//     }
+// }'
+// 
+
+// Move to current folder
+
+curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/bettersearch/video/_bulk?pretty' --data-binary @fulltest.json

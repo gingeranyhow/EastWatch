@@ -1,4 +1,5 @@
 var elasticsearch = require('elasticsearch');
+const toElastic = require('./elasticFormatter.js');
 
 var client = new elasticsearch.Client({  
   host: 'localhost:9200',
@@ -31,7 +32,7 @@ let indexExists = (indexName) => {
 exports.indexExists = indexExists;  
 
 /**
-* check if the index exists
+* Find By ID
 */
 
 let lookupById = (id) => {
@@ -49,13 +50,19 @@ let lookupById = (id) => {
     });
 };
 
-let baseSearch = (input) => {  
+exports.lookupById = lookupById;
+
+/**
+* Search By Query
+*/
+
+let baseSearch = (query) => {  
   return client.search({
     index: 'bettersearch',
     body: {
       query: {
         match: {
-          title: input
+          title: query
         }
       }
     }
@@ -70,4 +77,24 @@ let baseSearch = (input) => {
 };
 
 exports.baseSearch = baseSearch;
-exports.lookupById = lookupById;
+
+/**
+* Update Items
+*/
+
+let updateViews = (queueMessages) => {
+  // Expecting an array like ['video_id': 1234, 'views': 1232];
+  console.log('~~~ updating views in database ~~~');
+  let updateData = toElastic.updateViews(queueMessages);
+  console.log('~~~ formatted ~~~', updateData);
+  return client.bulk({
+    body: updateData
+  })
+    .catch(err => {
+      console.error(err);
+    });
+};
+
+exports.updateViews = updateViews;
+
+

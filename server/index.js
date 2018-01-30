@@ -1,12 +1,12 @@
 const Koa = require('koa');
 const searchRoutes = require('./routes/search.routes');
 const videoRoutes = require('./routes/video.routes');
-// const eventRoutes = require('./routes/events.routes');
+// const viewsController = require('./controllers/viewsController');
 
 const app = new Koa();
 const PORT = process.env.PORT || 3000;
 
-// x-response-time
+// X-response-time
 app.use(async (ctx, next) => {
   const start = Date.now();
   await next();
@@ -14,7 +14,7 @@ app.use(async (ctx, next) => {
   ctx.set('X-Response-Time', `${ms}ms`);
 });
 
-// logger
+// Logger
 app.use(async (ctx, next) => {
   const start = Date.now();
   await next();
@@ -22,11 +22,16 @@ app.use(async (ctx, next) => {
   console.log(`${ctx.method} ${ctx.url} - ${ms}`);
 });
 
-// Search Routes
+// Routes
 app.use(searchRoutes.routes());
 app.use(videoRoutes.routes());
-// app.use(eventRoutes.routes());
 
+// Start intervals for MessageBus
+// 2 minute for testing. Increase to every 30 minutes. 
+// let longInterval = 2 * 60000;
+// setInterval(viewsController.updateViews, longInterval);
+
+// Start Server
 const server = app.listen(PORT, () => {
     console.log(`Server listening on port: ${PORT}`);
 }).on("error", err => {

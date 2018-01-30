@@ -1,6 +1,6 @@
 // Elastic Search Schema
+// See readme for data upload
 
-PUT /bettersearch
 {
   "settings" : {
     "number_of_shards" : 5, 
@@ -9,62 +9,34 @@ PUT /bettersearch
   "mappings" : {
     "video" : {
       "properties" : {
-        "video_id" : { "type" : "integer" },
-        "views": { "type" : "long" },
-        "title" : { "type" : "text" },
-        "description" : { "type" : "text" },
-        "published_at" : { 
+        "videoId" : { 
+          "type" : "integer" 
+        },
+        "views": { 
+          "type" : "long" 
+        },
+        "title" : { 
+          "type" : "text" 
+        },
+        "description" : { 
+          "type" : "text" 
+        },
+        "publishedAt" : { 
           "type" : "date",
           "format": "date_time"
+        },
+        "channelTitle":{
+          "type" : "text"
+        },
+        "duration":  {
+          "type" : "long",
+          "index" : false
         },
         "thumbnails" : { 
           "type": "object", 
           "enabled" : false 
-        },
-        "channel_title":{
-          "type" : "text"
-        },
-        "channel_id" : { 
-          "type" : "text",
-          "index" : false
-        },
-        "duration":  {
-          "type" : "text",
-          "index" : false
         }
       }
     }
   }
 }
-
-// GET /shakespeare/_search
-// { 
-//   "query": {
-//     "match": {
-//       "text_entry": "peace"
-//     }
-//   }
-// }
-
-// curl -X PUT \
-//   http://localhost:9200/persons/ \
-//   -H 'content-type: application/json' \
-//   -d '{
-//     "mappings":{
-//         "person":{
-//             "properties":{
-//                 "name":{
-//                     "type":"string"
-//                 },
-//                 "suggest":{
-//                     "type":"completion"
-//                 }
-//             }
-//         }
-//     }
-// }'
-// 
-
-// Move to current folder
-
-curl -H 'Content-Type: application/x-ndjson' -XPOST 'localhost:9200/bettersearch/video/_bulk?pretty' --data-binary @fulltest.json

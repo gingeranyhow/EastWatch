@@ -9,27 +9,30 @@ var fs = Promise.promisifyAll(require('fs'));
 /* FUNCTIONS */
 
 let formatAndWriteVideos = (videoArray, nextId) => {
-  var stream = fs.createWriteStream('data_generation/ten-million.json', {flags: 'a'});
+  var stream = fs.createWriteStream('data_generation/files/v2.json', {flags: 'a'});
 
   videoArray.forEach((video) => {
-    let biasToViral = Math.random();
-    let randomViews = biasToViral > .85 
+    let bias = Math.random();
+    let randomViews = bias > .85 
       ? Math.floor(Math.random() * 50000000)
       : Math.floor(Math.random() * 100000);
 
-    let JSON_elastic = {'index': {'_index': 'bettersearch', '_id': nextId - 1}};
+    let duration = .05 < bias < .95
+      ? Math.floor(Math.random() * 30000000)
+      : Math.floor(Math.random() * 980000);
+
+    let JSON_elastic = {'index': {'_index': 'bettersearch', '_id': nextId}};
 
     let JSON_output = {
       type: 'video',
-      video_id: nextId,
+      videoId: nextId,
       views: randomViews,
       title: video.snippet.title,
       description: video.snippet.description,
-      published_at: video.snippet.publishedAt,
-      thumbnails: video.snippet.thumbnails,
-      channel_id: video.snippet.channelId,
-      duration: 'PT4M13S',
-      channel_title: video.snippet.channelTitle, 
+      publishedAt: video.snippet.publishedAt,
+      channelTitle: video.snippet.channelTitle,
+      duration: duration,
+      thumbnails: video.snippet.thumbnails
     };
 
     stream.write(JSON.stringify(JSON_elastic) + '\n' + JSON.stringify(JSON_output) + '\n');
@@ -53,13 +56,11 @@ var searchYouTube = ({query, max}) => {
 };
 
 // My actual work
-let nextId = 50242;
-let rounds = 1;
+let nextId = 240799;
+let rounds = 10000;
 
-for (var i = 0; i < rounds; i++) {
-  let breakLoop;
+runSearch = () => {
   let fakeWord = faker.random.words();
-  // let fakeWord = 'corgis'
   searchYouTube({query: fakeWord, max: 50})
     .then(results => {
       return formatAndWriteVideos(results.data.items, nextId);
@@ -68,18 +69,52 @@ for (var i = 0; i < rounds; i++) {
       nextId = updatedId;
     })
     .then(() => {
-      return fs.appendFileAsync('data_generation/search-terms.txt', fakeWord + '\n');
+      return fs.appendFileAsync('data_generation/files/search-terms.txt', fakeWord + '\n');
     })
     .catch(err => {
       console.error(err);
       breakLoop = true;
     });
+};
 
-  if (breakLoop) {
-    break;
-  }
-}
+(function myLoop(loops) {          
+  setTimeout(function () {   
+    runSearch();               
+    if (--loops) { // decrement i and call myLoop again if i > 0
+      myLoop(loops);
+    } else {
+      console.log(nextId);
+    }
+  }, 800);
+})(rounds); 
 
+// for (var i = 0; i < rounds; i++) {
+//   let breakLoop;
+//   let fakeWord = faker.random.words();
+//   // let fakeWord = 'corgis'
+//   searchYouTube({query: fakeWord, max: 50})
+//     .then(results => {
+//       return formatAndWriteVideos(results.data.items, nextId);
+//     })
+//     .then(updatedId => {
+//       nextId = updatedId;
+//     })
+//     .then(() => {
+//       return fs.appendFileAsync('data_generation/search-terms.txt', fakeWord + '\n');
+//     })
+//     .catch(err => {
+//       console.error(err);
+//       breakLoop = true;
+//     });
+
+//   if (breakLoop) {
+//     break;
+//   }
+
+//   if (i === rounds - 1) {
+//     console.log(nextId);  
+//   }
+// }
 
 // order=date&type=video&key={YOUR_API_KEY}
 // other ways to order

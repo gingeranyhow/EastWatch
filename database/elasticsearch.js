@@ -56,7 +56,9 @@ exports.lookupById = lookupById;
 * Search By Query
 */
 
-let baseSearch = (query) => {  
+let baseSearch = (query, results) => { 
+  // TODO - change to return max results
+
   return client.search({
     index: 'bettersearch',
     body: {

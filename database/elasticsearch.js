@@ -13,9 +13,9 @@ client.ping({
   requestTimeout: 30000,
 }, function (error) {
   if (error) {
-    console.error('elasticsearch cluster is down!');
+    console.error('➺ Elasticsearch cluster is down!');
   } else {
-    console.log('All is well');
+    console.log('➺ Elastic: All is well');
   }
 });
 
@@ -23,9 +23,9 @@ client.ping({
 * check if the index exists
 */
 
-let indexExists = (indexName) => {  
+let indexExists = () => {  
   return client.indices.exists({
-    index: indexName
+    index: index
   });
 };
 

@@ -17,13 +17,16 @@ const index = async ctx => {
   }
 
   try {
-    let search = await axios.get(trendingEndpoint);
-    console.log(search.data.videos);
-    results = await elastic.baseSearch(ctx.query.query);
+    let trendPromise = axios.get(trendingEndpoint);
+    // console.log(search.data.videos);
+    let searchPromise = elastic.baseSearch(ctx.query.query);
+    const [trend, search] = await Promise.all([trendPromise, searchPromise])
+    
     ctx.body = {
       data: {
-        count: results.length,
-        items: results
+        count: search.length,
+        items: search,
+        trend: trend.data.videos
       }
     }
   } catch (err) {

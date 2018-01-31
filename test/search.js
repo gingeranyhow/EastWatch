@@ -16,9 +16,9 @@ describe('routes: search', () => {
           should.not.exist(err);
           res.status.should.eql(200);
           res.type.should.eql('application/json');
-          res.body.data.items.length.should.eql(1);
-          res.body.data.count.should.eql(1);
-          res.body.data.items[0].should.include.keys('_id', '_score');
+          res.body.data.items.length.should.eql(10);
+          res.body.data.count.should.eql(10);
+          res.body.data.items[0].should.include.keys('videoId', 'views');
           done();
         });
     });

@@ -8,6 +8,15 @@ const abService = require('./helpers/abService.js');
 const toClientFormat = require('./helpers/toClientFormat.js')
 let trendingEndpoint = 'http://127.0.0.1:3000/service/trending';
 
+// Probably will move this to another file
+// This is posting to the Events queue
+
+const postToMessage = (bucketId, query) => {
+  setTimeout(function() { console.log('this represents me sending something to a message queue', bucketId, query); }, 5000);
+}
+
+// My search functions
+
 const index = async ctx => {
 
   if (!ctx.query.query) {
@@ -15,23 +24,25 @@ const index = async ctx => {
     return;
   }
 
+  // Set up variables based on experiment bucketing
   let bucketId = abService(ctx.query.userId);
+  let shouldIncludeTrends = (bucketId === 2);
+  let searchResultsLimit = shouldIncludeTrends ? 7 : 10;
+
+  // Later, change this to hashing
+  let searchId = 34;
 
   try {
-    let shouldIncludeTrends = (bucketId === 2)
 
+    // Set up search and trending promises
     let trendPromise = shouldIncludeTrends 
       ? axios.get(trendingEndpoint)
       : Promise.resolve(undefined);
     
-    let searchResultsLimit = shouldIncludeTrends 
-      ? 7
-      : 10;
-
     let searchPromise = elastic.baseSearch(ctx.query.query, searchResultsLimit);
-
     const [trend, searchUnformatted] = await Promise.all([trendPromise, searchPromise])
 
+    // Process results back from promises
     let formattedSearch = searchUnformatted.map((item) => {
       return toClientFormat.elasticVideoSummaryToClient(item);
     });
@@ -40,14 +51,18 @@ const index = async ctx => {
       formattedSearch = (trend.data.videos).concat(formattedSearch);
     }
 
+    // Send results to client
     ctx.body = {
       data: {
+        searchId: searchId,
         count: formattedSearch.length,
-        results: formattedSearch,
+        items: formattedSearch,
         hasTrends: shouldIncludeTrends
       }
     }
 
+    // Aftewards, process out
+    postToMessage(bucketId, ctx.query.userId);
     
   } catch (err) {
     ctx.status = 400
@@ -55,12 +70,6 @@ const index = async ctx => {
     console.error('Error handler:', err.message)
   }
 };
-
-// const post = async function *(ctx, next) {
-//   yield next;
-//   setTimeout(function() { console.log('processed'); }, 5000);
-// }
-
 
 // Check that the bettersearch Index is up. Can disable pre-production
 

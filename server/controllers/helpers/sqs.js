@@ -1,6 +1,8 @@
 // Load the SDK for JavaScript
+
 var AWS = require('aws-sdk');
 require('dotenv').config();
+
 // Set the region and credentials
 var credentials = new AWS.SharedIniFileCredentials({profile: process.env.AWS_PROFILE});
 AWS.config.credentials = credentials;
@@ -170,12 +172,12 @@ module.exports.checkQueue = checkQueue;
 //       QueueUrl: queueURL,
 //       ReceiptHandle: data.Messages[0].ReceiptHandle
 //     };
-//     // sqs.deleteMessage(deleteParams, function(err, data) {
-//     //   if (err) {
-//     //     console.log("Delete Error", err);
-//     //   } else {
-//     //     console.log("Message Deleted", data);
-//     //   }
-//     // });
+//     sqs.deleteMessage(deleteParams, function(err, data) {
+//       if (err) {
+//         console.log("Delete Error", err);
+//       } else {
+//         console.log("Message Deleted", data);
+//       }
+//     });
 //   }
 // });

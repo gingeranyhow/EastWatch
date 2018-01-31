@@ -30,7 +30,6 @@ coverage
 # Compiled Dirs (http://nodejs.org/api/addons.html)
 build/
 dist/
-data_generation/*
 
 # Dependency directorys
 # Deployed apps should consider commenting these lines out:
@@ -38,5 +37,5 @@ data_generation/*
 node_modules/
 bower_components/
 
-# Ginger Test
-/queries/
+# Large testing files
+generate-data/files/*

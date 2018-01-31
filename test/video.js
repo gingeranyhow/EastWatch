@@ -8,7 +8,7 @@ chai.use(chaiHttp);
 const PATH = '/api/video';
 
 describe(`GET ${PATH}/:id`, () => {
-  it("should return a single resource", done => {
+  xit("should return a single resource", done => {
     chai
       .request(server)
       .get(`${PATH}/1`)
@@ -21,7 +21,7 @@ describe(`GET ${PATH}/:id`, () => {
         done();
       });
   });
-  it("should return an error when the requested video does not exists", done => {
+  xit("should return an error when the requested video does not exists", done => {
     chai
       .request(server)
       .get(`${PATH}/999999999999`)

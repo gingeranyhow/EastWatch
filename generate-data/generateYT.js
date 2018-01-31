@@ -5,12 +5,11 @@ let key = process.env.YOUTUBE_API_KEY;
 var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
 
-
 /* FUNCTIONS */
 
 let formatAndWriteVideos = (videoArray, nextId) => {
   var stream = fs.createWriteStream('data_generation/files/v2.json', {flags: 'a'});
-
+  stream.write('[');
   videoArray.forEach((video) => {
     let bias = Math.random();
     let randomViews = bias > .85 
@@ -35,12 +34,14 @@ let formatAndWriteVideos = (videoArray, nextId) => {
       thumbnails: video.snippet.thumbnails
     };
 
-    stream.write(JSON.stringify(JSON_elastic) + '\n' + JSON.stringify(JSON_output) + '\n');
+    stream.write(JSON.stringify(JSON_elastic) + ',' + JSON.stringify(JSON_output) + ',');
     nextId++;
   });
   stream.end();
   return nextId;  
 };
+
+console.log(key);
 
 var searchYouTube = ({query, max}) => {
   var options = {
@@ -52,12 +53,13 @@ var searchYouTube = ({query, max}) => {
     type: 'video'
   };
 
-  return axios.get('https://www.googleapis.com/youtube/v3/search', {params: options});
+  return axios.get('https://www.googleapis.com/youtube/v3/search', {params: options})
+    .catch(err => { console.error(err.response) });
 };
 
 // My actual work
-let nextId = 240799;
-let rounds = 10000;
+let nextId = 279583;
+let rounds = 1;
 
 runSearch = () => {
   let fakeWord = faker.random.words();
@@ -77,6 +79,7 @@ runSearch = () => {
     });
 };
 
+
 (function myLoop(loops) {          
   setTimeout(function () {   
     runSearch();               
@@ -87,6 +90,7 @@ runSearch = () => {
     }
   }, 800);
 })(rounds); 
+
 
 // for (var i = 0; i < rounds; i++) {
 //   let breakLoop;

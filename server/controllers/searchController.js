@@ -3,7 +3,7 @@ const elastic = require('../../database/elasticsearch.js');
 
 const index = async ctx => {
   if (!ctx.query.query) {
-    ctx.throw(500,'Error Message'); 
+    ctx.throw(400,'Badly formed request. Please include query'); 
     return;
   }
 

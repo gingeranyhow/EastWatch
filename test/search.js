@@ -46,7 +46,7 @@ describe('routes: search', () => {
         .get(`${PATH}`)
         .end((err, res) => {
           should.exist(err);
-          res.status.should.eql(500);
+          res.status.should.eql(400);
           res.type.should.eql('text/plain');
           done();
         });

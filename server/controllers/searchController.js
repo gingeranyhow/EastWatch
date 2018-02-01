@@ -12,13 +12,13 @@ let trendingEndpoint = 'http://127.0.0.1:3000/service/trending';
 // This is posting to the Events queue
 
 const postToMessage = (bucketId, query) => {
-  setTimeout(function() { console.log('this represents me sending something to a message queue', bucketId, query); }, 5000);
+ //  setTimeout(function() { console.log('this represents me sending something to a message queue', bucketId, query); }, 5000);
 }
 
 // My search functions
 
 const index = async ctx => {
-
+  console.log('here');
   if (!ctx.query.query) {
     ctx.throw(400, 'Badly formed request. Please include query'); 
     return;
@@ -41,7 +41,7 @@ const index = async ctx => {
     
     let searchPromise = elastic.baseSearch(ctx.query.query, searchResultsLimit);
     const [trend, searchUnformatted] = await Promise.all([trendPromise, searchPromise])
-
+    // console.log('resolved', searchUnformatted);
     // Process results back from promises
     let formattedSearch = searchUnformatted.map((item) => {
       return toClientFormat.elasticVideoSummaryToClient(item);

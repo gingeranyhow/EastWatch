@@ -15,7 +15,7 @@ client.ping({
   if (error) {
     console.error('➺ Elasticsearch cluster is down!');
   } else {
-    console.log('➺ Elastic: All is well');
+    console.log('✓ Elastic DB responsive');
   }
 });
 
@@ -56,25 +56,95 @@ exports.lookupById = lookupById;
 * Search By Query
 */
 
-let baseSearch = (query, results) => { 
-  // TODO - change to return max results
+// let widequery = (query) => {
+//   return {
+//     multi_match: {
+//       query: query,
+//       type: "cross_fields",
+//       fields: ["title^2", "description", "channelTitle"]
+//     }
+//   };
+// };
+
+
+// let strictquery = (query) => {
+//   return {
+//     multi_match: {
+//       query: query,
+//       operator: "and",
+//       fields: ["title^2", "channelTitle"]
+//     }
+//   };
+// }
+
+let queryBuilder = (query, limit, type = 'wide') => {
+  let field_value_factor = {
+    field: "views",
+    factor: 1,
+    modifier: "ln1p",
+    missing: 1
+  };
+
+  let queryParam;
+  if (type === 'strict') {
+    queryParam = {
+      multi_match: {
+        query: query,
+        operator: "and",
+        fields: ["title^2", "channelTitle"]
+      }
+    };
+  } else {
+    queryParam = {
+      multi_match: {
+        query: query,
+        type: "cross_fields",
+        fields: ["title^2", "description", "channelTitle"]
+      }
+    };
+  }
 
   return client.search({
     index: 'bettersearch',
     body: {
+      size: limit,
       query: {
-        match: {
-          title: query
+        "function_score": {
+          query: queryParam,
+          field_value_factor: field_value_factor
         }
       }
     }
-  })
+  });
+};
+
+let baseSearch = (query, limit) => { 
+  console.log('hi');
+  console.time('⚡⚡ combined query ⚡⚡');
+  let strictSearch = queryBuilder(query, limit, 'strict');
+
+
+  return strictSearch
     .then((body) => {
-      var hits = body.hits.hits;
-      return hits;
+      console.log('➺ single query took: ', body.took, 'ms');
+
+      if (body.hits && (body.hits.total > limit)) {
+        console.timeEnd('⚡⚡ combined query ⚡⚡');
+        return body.hits.hits;
+      } else {
+        let wideSearch = queryBuilder(query, limit, 'wide');
+
+        return wideSearch
+          .then((body) => {
+            console.log('➺ single query took: ', body.took, 'ms');
+            console.timeEnd('⚡⚡ combined query ⚡⚡');
+            return body.hits.hits;
+          })
+          .catch(err => Promise.reject(err) );
+      }
     })
     .catch((err) => {
-      console.trace(err.message); 
+      console.trace('Search Error Handler:', err.message); 
     });
 };
 

@@ -1,4 +1,4 @@
-const server = require('../server/index');
+const server = require('../../server/index');
 
 const chai = require('chai');
 const should = chai.should();

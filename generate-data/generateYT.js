@@ -5,12 +5,13 @@ let key = process.env.YOUTUBE_API_KEY;
 var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
 const path = require('path');
+var randomWords = require('random-words');
 
 /* FUNCTIONS */
 
 let formatAndWriteVideos = (videoArray, nextId) => {
   
-  var stream = fs.createWriteStream(path.join(__dirname, 'files/all/yt-6.json'), {flags: 'a'});
+  var stream = fs.createWriteStream(path.join(__dirname, 'files/yt-7.json'), {flags: 'a'});
 
   videoArray.forEach((video) => {
     let bias = Math.random();
@@ -60,12 +61,13 @@ var searchYouTube = ({query, max}) => {
 
 // My actual work
 
-let nextId = 600335;
-let rounds = 2000;
+let nextId = 799972;
+let rounds = 1;
 
-runSearch = () => {
-  let fakeWord = faker.random.words();
-  console.log('~~~~~Searching:', fakeWord);
+runSearch = (loops) => {
+  //let fakeWord = randomWords({min: 1, max: 4, join: ' '});
+  let fakeWord = 'corgi';
+  console.log('~~~~~Searching ', loops, ':', fakeWord);
   searchYouTube({query: fakeWord, max: 50})
     .then(results => {
       return formatAndWriteVideos(results.data.items, nextId);
@@ -85,11 +87,11 @@ runSearch = () => {
 
 (function myLoop(loops) {          
   setTimeout(function () {   
-    runSearch();               
+    runSearch(loops);               
     if (--loops) { // decrement i and call myLoop again if i > 0
       myLoop(loops);
     } else {
-      console.log('~~~~~Completed:', nextId);
+      console.log('~~~~~Completed~~~~~~');
     }
   }, 800);
 })(rounds); 

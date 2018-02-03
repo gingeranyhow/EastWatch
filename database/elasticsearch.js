@@ -98,60 +98,25 @@ let queryBuilder = (query, limit, type = 'wide') => {
   });
 };
 
-
-// let searchQuery = (query, limit) => { 
-
-//   console.time('⚡⚡ query ⚡⚡');
-//   let strictSearch = queryBuilder(query, limit, 'strict');
-
-//   return strictSearch
-//     .then((body) => {
-//       // console.log('➺ single query took: ', body.took, 'ms');
-//       if (body.hits && (body.hits.total > limit)) {
-//         console.timeEnd('⚡⚡ query ⚡⚡');
-//         return body.hits.hits;
-//       } else {
-//         let cutSearch = queryBuilder(query, limit, 'cut');
-//         return cutSearch
-//           .then((body) => {
-//             // console.log('➺ single second query took: ', body.took, 'ms');
-//             console.timeEnd('⚡⚡ query ⚡⚡');
-//             return body.hits.hits;
-//           })
-//           .catch(err => {
-//             console.timeEnd('⚡⚡ query ⚡⚡');
-//             console.error('Search Error Handler:', err.message); 
-//             Promise.reject(err);
-//           });
-//       }
-//     })
-//     .then(hits => {
-//       return hits;
-//     })
-//     .catch(err => {
-//       console.timeEnd('⚡⚡ query ⚡⚡');
-//       console.error('Search Error Handler:', err.message); 
-//     });
-// };
-
-
 let firstSearch = (query, limit) => { 
 
   console.time('⚡⚡ fast query ⚡⚡');
 
   return queryBuilder(query, limit, 'strict')
     .then((body) => {
-      if (body.hits) {
-        console.timeEnd('⚡⚡ fast query ⚡⚡');
+      if (body.hits) { 
         return body.hits.hits;
       } else {
-        console.timeEnd('⚡⚡ fast query ⚡⚡');
         return [];
       }
     })
-    .catch(err => {
+    .then((hits) =>{
       console.timeEnd('⚡⚡ fast query ⚡⚡');
-      console.error('Search Error Handler:', err.message); 
+      return hits;
+    })
+    .catch(err => {
+      // console.timeEnd('⚡⚡ fast query ⚡⚡');
+      console.error('Fast search Error Handler:', err.message); 
     });
 };
 
@@ -162,23 +127,22 @@ let slowSearch = (query, limit) => {
   return queryBuilder(query, limit, 'cut')
     .then((body) => {
       if (body.hits) {
-        console.timeEnd('⚡⚡ slow query ⚡⚡');
         return body.hits.hits;
       } else {
-        console.timeEnd('⚡⚡ slow query ⚡⚡');
         return [];
       }
     })
-    .catch(err => {
+    .then((hits) =>{
       console.timeEnd('⚡⚡ slow query ⚡⚡');
-      console.error('Search Error Handler:', err.message); 
+      return hits;
+    })
+    .catch(err => {
+      console.error('Slow search Error Handler:', err.message); 
     });
 };
 
 exports.slowSearch = slowSearch;
 exports.firstSearch = firstSearch;
-
-
 
 
 /**

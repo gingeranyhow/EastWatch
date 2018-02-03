@@ -27,9 +27,8 @@ const index = async ctx => {
   let bucketId = abService(ctx.query.userId);
   let shouldIncludeTrends = (bucketId === 2);
   let searchResultsLimit = shouldIncludeTrends ? 7 : 10;
-
-  // Later, change this to hashing
   let searchId = 34;
+  
   let formattedSearch;
 
   try {
@@ -64,8 +63,8 @@ const index = async ctx => {
     }
 
   } catch (err) {
-    ctx.throw(500, `Error: ${err.message}`); 
-    console.error('Error handler:', err.message)
+    ctx.throw(500, `Error: Server error`); 
+    console.error('Search Error handler:', err)
   }
 
   ctx.body = {

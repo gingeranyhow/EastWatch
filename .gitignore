@@ -41,4 +41,4 @@ node_modules/
 bower_components/
 
 # Large testing files
-generate-data/files/*
+test/generate-data/files/*

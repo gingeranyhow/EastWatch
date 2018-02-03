@@ -18,7 +18,6 @@ const postToMessage = (bucketId, query) => {
 // My search functions
 
 const index = async ctx => {
-  console.log('here');
   if (!ctx.query.query) {
     ctx.throw(400, 'Badly formed request. Please include query'); 
     return;
@@ -31,51 +30,60 @@ const index = async ctx => {
 
   // Later, change this to hashing
   let searchId = 34;
+  let formattedSearch;
 
   try {
-
     // Set up search and trending promises
     let trendPromise = shouldIncludeTrends 
       ? axios.get(trendingEndpoint)
       : Promise.resolve(undefined);
     
-    let searchPromise = elastic.baseSearch(ctx.query.query, searchResultsLimit);
-    const [trend, searchUnformatted] = await Promise.all([trendPromise, searchPromise])
-    // console.log('resolved', searchUnformatted);
-    // Process results back from promises
-    let formattedSearch = searchUnformatted.map((item) => {
-      return toClientFormat.elasticVideoSummaryToClient(item);
-    });
+    let searchPromise = elastic.firstSearch(ctx.query.query, searchResultsLimit);
 
-    if (trend) {
-      formattedSearch = (trend.data.videos).concat(formattedSearch);
+    if (shouldIncludeTrends) {
+      let trendPromise = axios.get(trendingEndpoint);
     }
 
-    // Send results to client
-    ctx.body = {
-      data: {
-        searchId: searchId,
-        count: formattedSearch.length,
-        items: formattedSearch,
-        hasTrends: shouldIncludeTrends
+    const [trend, searchUnformatted] = await Promise.all([trendPromise, searchPromise])
+
+    if (!searchUnformatted || searchUnformatted.length < searchResultsLimit) {
+      try {
+        const [searchUnformatted] = await elastic.slowSearch(ctx.query.query, searchResultsLimit);
+      } catch (err) {
+        ctx.throw(500, `Error: ${err.message}`); 
+        console.error('Error handler:', err.message)
       }
     }
 
-    // Aftewards, process out
-    postToMessage(bucketId, ctx.query.userId);
-    
+    formattedSearch = searchUnformatted && searchUnformatted.map((item) => {
+      return toClientFormat.elasticVideoSummaryToClient(item);
+    });
+
+    if (shouldIncludeTrends) {
+      formattedSearch = (trend.data.videos).concat(formattedSearch);
+    }
+
   } catch (err) {
-    ctx.status = 400
-    ctx.body = `Error: ${err.message}`
+    ctx.throw(500, `Error: ${err.message}`); 
     console.error('Error handler:', err.message)
   }
+
+  ctx.body = {
+    data: {
+      searchId: searchId,
+      count: formattedSearch.length || 0,
+      items: formattedSearch
+    }
+  }
+  // Aftewards, process out
+  postToMessage(bucketId, ctx.query.userId);
+    
 };
 
 // Check that the bettersearch Index is up. Can disable pre-production
 
 const check = async ctx => {
   try {
-    let query = 'peace';
     results = await elastic.indexExists();
     ctx.body = {
       status: {

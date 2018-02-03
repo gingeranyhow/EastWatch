@@ -1,0 +1,26 @@
+config:
+  target: 'http://127.0.0.1:3000'
+  # http:
+  #   # Responses have to be sent within 10 seconds or the request will be aborted
+  #   timeout: 5
+  tls:
+    rejectUnauthorized: false
+  phases:
+    - duration: 5
+      arrivalRate: 5
+    - duration: 100
+      arrivalRate: 10
+  payload:
+    path: './searches.csv'
+    fields: 
+      - "item"
+scenarios:
+  - name: "Search Tests"
+    flow:
+    - loop:
+      - get:
+          url: "/api/search/?query={{ item }}"
+      count: 10
+
+
+# run with 

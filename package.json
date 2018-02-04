@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server/index.js",
     "test": "mocha test/runner/*",
-    "mon": "nodemon --ignore generate-data/ server/index.js"
+    "mon": "nodemon --ignore generate-data/ server/index.js",
+    "pm": "pm2 start server/index.js"
   },
   "repository": {
     "type": "git",

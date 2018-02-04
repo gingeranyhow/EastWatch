@@ -8,8 +8,8 @@ config:
   phases:
     - duration: 5
       arrivalRate: 5
-    - duration: 10
-      arrivalRate: 10
+    - duration: 60
+      arrivalRate: 20
   payload:
     path: './searches.csv'
     fields: 
@@ -20,6 +20,5 @@ scenarios:
     - loop:
       - get:
           url: "/api/search/?query={{ item }}"
-      count: 2
-
+      count: 1
 # run with 

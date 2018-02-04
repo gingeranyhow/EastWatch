@@ -29,7 +29,7 @@ const index = async ctx => {
   let searchResultsLimit = shouldIncludeTrends ? 7 : 10;
   let searchId = 34;
   
-  let formattedSearch;
+  let formattedSearch, trend, searchUnformatted;
 
   try {
     // Set up search and trending promises
@@ -41,23 +41,29 @@ const index = async ctx => {
 
     if (shouldIncludeTrends) {
       let trendPromise = axios.get(trendingEndpoint);
+      [trend, searchUnformatted] = await Promise.all([trendPromise, searchPromise])
+    } else {
+      searchUnformatted = await searchPromise;
     }
 
-    const [trend, searchUnformatted] = await Promise.all([trendPromise, searchPromise])
-
-    if (!searchUnformatted || searchUnformatted.length < searchResultsLimit) {
+    // If initial search does not return enough results, run a slower search
+    if (searchUnformatted === undefined || searchUnformatted.length < searchResultsLimit) {
       try {
-        const [searchUnformatted] = await elastic.slowSearch(ctx.query.query, searchResultsLimit);
+        searchUnformatted = await elastic.slowSearch(ctx.query.query, searchResultsLimit);
       } catch (err) {
         ctx.throw(500, `Error: ${err.message}`); 
-        console.error('Error handler:', err.message)
+        console.error('Second Search error handler:', err.message)
       }
     }
 
-    formattedSearch = searchUnformatted && searchUnformatted.map((item) => {
+    // Format search for clients
+    formattedSearch = !searchUnformatted 
+      ? []
+      : searchUnformatted.map((item) => {
       return toClientFormat.elasticVideoSummaryToClient(item);
     });
 
+    // Add trends results if existing
     if (shouldIncludeTrends) {
       formattedSearch = (trend.data.videos).concat(formattedSearch);
     }
@@ -67,15 +73,20 @@ const index = async ctx => {
     console.error('Search Error handler:', err)
   }
 
+  let resultsCount = formattedSearch
+    ? formattedSearch.length
+    : 0
+
   ctx.body = {
     data: {
       searchId: searchId,
-      count: formattedSearch.length || 0,
+      count: resultsCount,
       items: formattedSearch
     }
   }
+  
   // Aftewards, process out
-  postToMessage(bucketId, ctx.query.userId);
+  // postToMessage(bucketId, ctx.query.userId);
     
 };
 

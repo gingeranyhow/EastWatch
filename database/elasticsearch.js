@@ -100,7 +100,7 @@ let queryBuilder = (query, limit, type = 'wide') => {
 
 let firstSearch = (query, limit) => { 
 
-  console.time('⚡⚡ fast query ⚡⚡');
+  console.time(`⚡⚡ fast query ${query}`);
 
   return queryBuilder(query, limit, 'strict')
     .then((body) => {
@@ -110,19 +110,19 @@ let firstSearch = (query, limit) => {
         return [];
       }
     })
-    .then((hits) =>{
-      console.timeEnd('⚡⚡ fast query ⚡⚡');
-      return hits;
+    .then((results) =>{
+      console.timeEnd(`⚡⚡ fast query ${query}`);
+      return results;
     })
     .catch(err => {
-      // console.timeEnd('⚡⚡ fast query ⚡⚡');
+      console.timeEnd(`⚡⚡ fast query ${query}`);
       console.error('Fast search Error Handler:', err.message); 
     });
 };
 
 let slowSearch = (query, limit) => { 
 
-  console.time('⚡⚡ slow query ⚡⚡');
+  console.time(`⚡⚡ second query ${query}`);
 
   return queryBuilder(query, limit, 'cut')
     .then((body) => {
@@ -132,11 +132,12 @@ let slowSearch = (query, limit) => {
         return [];
       }
     })
-    .then((hits) =>{
-      console.timeEnd('⚡⚡ slow query ⚡⚡');
-      return hits;
+    .then((results) => {
+      console.timeEnd(`⚡⚡ second query ${query}`);
+      return results;
     })
     .catch(err => {
+      console.timeEnd(`⚡⚡ second query ${query}`);
       console.error('Slow search Error Handler:', err.message); 
     });
 };
@@ -162,6 +163,21 @@ let updateViews = (queueMessages) => {
 };
 
 exports.updateViews = updateViews;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 // else { // type wide

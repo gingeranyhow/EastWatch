@@ -102,7 +102,7 @@ const check = async ctx => {
     }
   } catch (error) {
     console.error(error);
-    ctx.body = 'Sorry, error!';
+    ctx.body = 'Sorry, no luck!';
   } 
 };
 

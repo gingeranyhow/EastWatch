@@ -1,8 +1,10 @@
 var elasticsearch = require('elasticsearch');
 const toElastic = require('./elasticFormatter.js');
 
+let url = 'localhost:9200';
+// let url = 'https://search-east-watch-d5kj2ffyn2yiyofuhagkpot4ii.us-east-1.es.amazonaws.com/';
 var client = new elasticsearch.Client({  
-  host: 'localhost:9200',
+  host: url,
   log: 'info'
 });
 

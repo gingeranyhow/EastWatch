@@ -1,17 +1,15 @@
 var elasticsearch = require('elasticsearch');
-const Promise = require('bluebird');
-var readFilePromise = Promise.promisify(require('fs').readFile);
+// const Promise = require('bluebird');
+// var readFilePromise = Promise.promisify(require('fs').readFile);
 
 var client = new elasticsearch.Client({  
   host: 'https://search-east-watch-d5kj2ffyn2yiyofuhagkpot4ii.us-east-1.es.amazonaws.com',
   log: 'info',
-  requestTimeout: 60000
+  requestTimeout: 600000
 });
 
-
-// curl -H 'Content-Type: application/x-ndjson' -XPOST 'https://search-east-watch-d5kj2ffyn2yiyofuhagkpot4ii.us-east-1.es.amazonaws.com/bettersearch/doc/_bulk?pretty' --data-binary @yt-0.json
-
 let fileBase = '/Users/christiginger/code/hackreactor/EastWatch/test/generate-data/files/all';
+
 
 let uploadToAWS = (data) => {
   return client.bulk({
@@ -23,30 +21,6 @@ let uploadToAWS = (data) => {
     .catch(err => console.error(err));  
 };
 
-
-// let splitAndUpload = (filename) => {
-//   let lines = require(filename);
-
-//   // console.log(typeof(lines));
-//   // var lines = data.split('\n'); 
-//   let promiseArray = [];
-//   let maxLine = 22250;
-//   for (var i = 0; i < 3; i++) {
-//     let start = i * maxLine;
-//     let endpoint = (i + 1) * maxLine;
-//     let chunk = lines.slice(start, endpoint);
-//     //console.log(chunk);
-
-//     setTimeout(uploadToAWS.bind(null, chunk), i * 3000);
-    
-//     // let mypromise = new Promise(uploadToAWS.bind(null, chunk));
-//     // promiseArray.push(mypromise);
-//   }
-
-//   Promise.all(promiseArray)
-//     .catch(err => console.error(err));
-// };
-
 let splitAndUpload = (filename) => {
   let lines = require(filename);
 
@@ -57,61 +31,68 @@ let splitAndUpload = (filename) => {
     let start = i * maxLine;
     let endpoint = (i + 1) * maxLine;
     let chunk = lines.slice(start, endpoint);
-    //console.log(chunk);
-    // let mypromise = new Promise(uploadToAWS.bind(null, chunk));
     promiseArray.push(uploadToAWS.bind(null, chunk));
   }
 
-  // console.log(promiseArray[0]);
 
-  promiseArray[0]()
-    .then(promiseArray[1]())
-    .then(promiseArray[2]())
-    .then(promiseArray[3]())
-    .then(promiseArray[4]())
-    .then(promiseArray[5]())
-    .then(promiseArray[6]())
-    .then(promiseArray[7]())
-    .then(promiseArray[8]())
+  return promiseArray[0]()
+    .then(() => promiseArray[1] && promiseArray[1]())
+    .then(() => promiseArray[2] && promiseArray[2]())
+    .then(() => promiseArray[3] && promiseArray[3]())
+    .then(() => promiseArray[4] && promiseArray[4]())
+    .then(() => promiseArray[5] && promiseArray[5]())
+    .then(() => promiseArray[6] && promiseArray[6]())
+    .then(() => promiseArray[7] && promiseArray[7]())
+    .then(() => promiseArray[8] && promiseArray[8]())
     .catch(err => console.error(err));  
 };
 
-splitAndUpload(`${fileBase}/fake-99.json`);
+// splitAndUpload(`${fileBase}/fake-99.json`);
+
+let uploadInLoop = (myLoop, endLoop) => {  
+  console.time(`upload ${myLoop}`);
+  
+  let fileName = `${fileBase}/fake-${myLoop}.json`;
+
+  splitAndUpload(fileName)
+    .then(() => {
+      console.timeEnd(`upload ${myLoop}`);
+      if (myLoop < endLoop) { // call again until max
+        uploadInLoop(myLoop + 1, endLoop);
+      }
+    })
+    .catch(err => {
+      console.error(err);
+    });
+};
 
 // let uploadInLoop = (myLoop, endLoop) => {  
+//   let queue = [];
+//   for (var i = myLoop; i <= endLoop; i++) {
+//     let fileName = `${fileBase}/fake-${myLoop}.json`;
+//     queue.push(fileName);
+//   }
 //   console.time(`upload ${myLoop}`);
+//   console.log(queue);
   
-//   let fileName = `${fileBase}/fake-${myLoop}.json`;
-
-//   splitAndUpload(fileName, uploadData)
-//     .then(() => {
-//       if (myLoop < endLoop) { // call again until max
-//         uploadInLoop(myLoop + 1, endLoop);
-//       } else {
+//   while (queue.length > 0) {
+//     console.log('process', queue.length);
+//     console.time(`upload ${myLoop}`);
+//     splitAndUpload(queue[queue.length - 1])
+//       .then(() => {
+//         queue.pop();
 //         console.timeEnd(`upload ${myLoop}`);
-//       }
-//     })
-//     .catch(err => {
-//       console.error(err);
-//     });
+//       })
+//       .catch(err => {
+//         console.error(err);
+//       });
+//   }
 // };
 
-// let start = 99;
-// let end = 99;
-// //uploadInLoop(70, 74);
-// uploadInLoop(start, end);
 
 
+let start = 18;
+let end = 28;
+//let end = 89;
+uploadInLoop(start, end);
 
-// -------------
-
-// readFilePromise("myfile.js", "utf8").then(function(contents) {
-//   return eval(contents);
-// }).then(function(result) {
-//     console.log("The result of evaluating myfile.js", result);
-// }).catch(SyntaxError, function(e) {
-//     console.log("File had syntax error", e);
-// //Catch any other error
-// }).catch(function(e) {
-//     console.log("Error reading file", e);
-// });

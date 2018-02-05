@@ -20,5 +20,44 @@ scenarios:
     - loop:
       - get:
           url: "/api/search/?query={{ item }}"
-      count: 1
-# run with 
+      - think: 1
+      count: 4
+
+# Arrival: 20 / Loop: 3 
+# Median: 40
+
+# Arrival: 20 / Loop: 4 
+# Median: 7,882
+
+
+# Arrival: 20 / Loop: 4  / Think: 3
+# Median: 14,531
+
+
+# Arrival: 20 / Loop: 4  / Think: 1
+# Median: 4,676
+
+
+# config:
+#   target: 'http://127.0.0.1:3000'
+#   # http:
+#   #   # Responses have to be sent within 10 seconds or the request will be aborted
+#   #   timeout: 5
+#   tls:
+#     rejectUnauthorized: false
+#   phases:
+#     - duration: 5
+#       arrivalRate: 5
+#     - duration: 60
+#       arrivalRate: 20
+#   payload:
+#     path: './searches.csv'
+#     fields: 
+#       - "item"
+# scenarios:
+#   - name: "Search Tests"
+#     flow:
+#     - loop:
+#       - get:
+#           url: "/api/search/?query={{ item }}"
+#       count: 1

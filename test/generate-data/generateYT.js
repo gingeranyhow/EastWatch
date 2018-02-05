@@ -1,7 +1,8 @@
 require('dotenv').config();
+
 const axios = require('axios');
 var faker = require('faker');
-let key = process.env.YOUTUBE_API_KEY;
+const key = process.env.YOUTUBE_API_KEY;
 var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
 const path = require('path');
@@ -9,9 +10,9 @@ var randomWords = require('random-words');
 
 /* FUNCTIONS */
 
-let formatAndWriteVideos = (videoArray, nextId) => {
+let formatAndWriteVideos = (videoArray, nextId, fileId) => {
   
-  var stream = fs.createWriteStream(path.join(__dirname, 'files/yt-7.json'), {flags: 'a'});
+  var stream = fs.createWriteStream(path.join(__dirname, `files/all/yt-${fileId}.json`), {flags: 'a'});
 
   videoArray.forEach((video) => {
     let bias = Math.random();
@@ -61,16 +62,17 @@ var searchYouTube = ({query, max}) => {
 
 // My actual work
 
-let nextId = 799972;
-let rounds = 1;
+let nextId = 499798;
+let rounds = Math.ceil((Math.ceil(nextId / 100000) * 100000 - nextId) / 50);
+let file = (Math.floor(nextId / 100000));
 
 runSearch = (loops) => {
-  //let fakeWord = randomWords({min: 1, max: 4, join: ' '});
-  let fakeWord = 'corgi';
+  let fakeWord = randomWords({min: 1, max: 5, join: ' '});
+  // let fakeWord = 'corgi';
   console.log('~~~~~Searching ', loops, ':', fakeWord);
   searchYouTube({query: fakeWord, max: 50})
     .then(results => {
-      return formatAndWriteVideos(results.data.items, nextId);
+      return formatAndWriteVideos(results.data.items, nextId, file);
     })
     .then(updatedId => {
       nextId = updatedId;

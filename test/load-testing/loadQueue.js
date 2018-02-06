@@ -2,7 +2,6 @@
 // will eventually be populated by other microservices
 */
 
-
 /* URLs */
 let viewsQueue = 'https://sqs.us-west-1.amazonaws.com/361175477919/EastWatch-views';
 

@@ -1,0 +1,85 @@
+config:
+  target: 'http://127.0.0.1:3000'
+  # http:
+  #   # Responses have to be sent within 10 seconds or the request will be aborted
+  #   timeout: 5
+  tls:
+    rejectUnauthorized: false
+  phases:
+    - duration: 5
+      arrivalRate: 5
+    - duration: 120
+      arrivalRate: 20
+  payload:
+    path: './searches.csv'
+    fields: 
+      - "item"
+scenarios:
+  - name: "Search Tests"
+    flow:
+    - loop:
+      - get:
+          url: "/api/search/?query={{ item }}"
+      - think: 1
+      count: 6
+
+# ----- G tests 2/5 ----------
+# All: Think: 1 / Duration: 120
+
+# Arrival: 20 / Loop: 1 
+# Median, 95:  8.4,  29.5 / RPS: 19.19 / No errors
+
+# Arrival: 20 / Loop: 2
+# Median, 95:  8.6,  54.1 / RPS: 38.08 / No errors
+
+# Arrival: 20 / Loop: 3 
+# Median, 95: 16.0, 116.7 / RPS: 56.68 / No errors
+
+# Arrival: 20 / Loop: 4 
+# Median, 95: 81.4, 950.1 / RPS: 74.97 / No errors
+
+# Arrival: 20 / Loop: 5
+# SHUT DOWN REQUEST -> Latency > 60000.8 as queues overloaded
+# -> Queue capacity: how to back-off? 
+# Median, 95: 2524.7, 4804.1 / RPS: 86.91 / .4%
+
+
+
+# ------- G tests - weekend - old DB ---------
+
+# Arrival: 20 / Loop: 3 / Duration: 60
+# Median: 40
+
+# Arrival: 20 / Loop: 4 / Duration: 60
+# Median: 7,882
+
+# Arrival: 20 / Loop: 4  / Think: 3 / Duration: 60
+# Median: 14,531
+
+# Arrival: 20 / Loop: 4  / Think: 1/ Duration: 60
+# Median: 4,676
+
+
+# config:
+#   target: 'http://127.0.0.1:3000'
+#   # http:
+#   #   # Responses have to be sent within 10 seconds or the request will be aborted
+#   #   timeout: 5
+#   tls:
+#     rejectUnauthorized: false
+#   phases:
+#     - duration: 5
+#       arrivalRate: 5
+#     - duration: 60
+#       arrivalRate: 20
+#   payload:
+#     path: './searches.csv'
+#     fields: 
+#       - "item"
+# scenarios:
+#   - name: "Search Tests"
+#     flow:
+#     - loop:
+#       - get:
+#           url: "/api/search/?query={{ item }}"
+#       count: 1

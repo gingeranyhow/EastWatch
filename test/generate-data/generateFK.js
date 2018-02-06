@@ -51,8 +51,9 @@ let formatAndWriteVideos = (startId, endId) => {
 /* RUN TWO ROUNDS */
 
 let start = 80;
-let end = 99;
+let end = 80;
 console.time('one-mill');
+
 (function myLoop(max, current) {
   let sizeToWrite = 100000;
   let starterId = current * 100000;

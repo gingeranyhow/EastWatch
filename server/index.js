@@ -1,5 +1,5 @@
+require('newrelic');
 const Koa = require('koa');
-
 const Router = require('koa-router');
 const router = new Router();
 
@@ -26,7 +26,7 @@ app.use(async (ctx, next) => {
   const start = Date.now();
   await next();
   const ms = Date.now() - start;
-  console.log(`${ctx.method} ${ctx.url} \n⤷ Response time is: ${ms}`);
+  console.log(`${ctx.method} ${ctx.url} \n⤷ Response time is: ${ms}ms`);
 });
 
 // Routes
@@ -46,7 +46,7 @@ app.use(router.allowedMethods())
 
 // Start Server
 const server = app.listen(PORT, () => {
-    console.log(`Server listening on port: ${PORT}`);
+    console.log(`👂 Server listening on port: ${PORT}`);
 }).on("error", err => {
   console.error(err);
 });

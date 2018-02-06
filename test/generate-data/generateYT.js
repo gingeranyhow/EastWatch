@@ -1,16 +1,17 @@
 require('dotenv').config();
+
 const axios = require('axios');
 var faker = require('faker');
-let key = process.env.YOUTUBE_API_KEY;
+const key = process.env.YOUTUBE_API_KEY;
 var Promise = require('bluebird');
 var fs = Promise.promisifyAll(require('fs'));
 const path = require('path');
+var randomWords = require('random-words');
 
 /* FUNCTIONS */
-
-let formatAndWriteVideos = (videoArray, nextId) => {
+let formatAndWriteVideos = (videoArray, nextId, fileId) => {
   
-  var stream = fs.createWriteStream(path.join(__dirname, 'files/all/yt-6.json'), {flags: 'a'});
+  var stream = fs.createWriteStream(path.join(__dirname, `files/all/yt-${fileId}.json`), {flags: 'a'});
 
   videoArray.forEach((video) => {
     let bias = Math.random();
@@ -60,15 +61,17 @@ var searchYouTube = ({query, max}) => {
 
 // My actual work
 
-let nextId = 600335;
-let rounds = 2000;
+let nextId = 499798;
+let rounds = Math.ceil((Math.ceil(nextId / 100000) * 100000 - nextId) / 50);
+let file = (Math.floor(nextId / 100000));
 
-runSearch = () => {
-  let fakeWord = faker.random.words();
-  console.log('~~~~~Searching:', fakeWord);
+runSearch = (loops) => {
+  let fakeWord = randomWords({min: 1, max: 5, join: ' '});
+  // let fakeWord = 'corgi';
+  console.log('~~~~~Searching ', loops, ':', fakeWord);
   searchYouTube({query: fakeWord, max: 50})
     .then(results => {
-      return formatAndWriteVideos(results.data.items, nextId);
+      return formatAndWriteVideos(results.data.items, nextId, file);
     })
     .then(updatedId => {
       nextId = updatedId;
@@ -85,17 +88,12 @@ runSearch = () => {
 
 (function myLoop(loops) {          
   setTimeout(function () {   
-    runSearch();               
+    runSearch(loops);               
     if (--loops) { // decrement i and call myLoop again if i > 0
       myLoop(loops);
     } else {
-      console.log('~~~~~Completed:', nextId);
+      console.log('~~~~~Completed~~~~~~');
     }
   }, 800);
 })(rounds); 
-
-
-// order=date&type=video&key={YOUR_API_KEY}
-// other ways to order
-// https://developers.google.com/youtube/v3/docs/search/list
 

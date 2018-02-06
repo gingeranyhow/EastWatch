@@ -1,16 +1,18 @@
 // Elastic Search Schema
 // See readme for data upload
 
+// PUT bettersearch
+
 {
-  "settings" : {
-    "number_of_shards" : 5, 
-    "number_of_replicas" : 1 
-  },
+  // "settings" : {
+  //   "number_of_shards" : 20, 
+  //   "number_of_replicas" : 1 
+  // },
   "mappings" : {
     "video" : {
       "properties" : {
         "videoId" : { 
-          "type" : "integer" 
+          "type" : "long" 
         },
         "views": { 
           "type" : "long" 
@@ -40,3 +42,4 @@
     }
   }
 }
+

@@ -1,8 +1,10 @@
 var elasticsearch = require('elasticsearch');
 const toElastic = require('./elasticFormatter.js');
 
+let url = 'localhost:9200';
+// let url = 'https://search-east-watch-d5kj2ffyn2yiyofuhagkpot4ii.us-east-1.es.amazonaws.com/';
 var client = new elasticsearch.Client({  
-  host: 'localhost:9200',
+  host: url,
   log: 'info'
 });
 
@@ -15,9 +17,31 @@ client.ping({
   if (error) {
     console.error('➺ Elasticsearch cluster is down!');
   } else {
-    console.log('➺ Elastic: All is well');
+    console.log('✓ Elastic DB responsive');
   }
 });
+
+/**
+* get queuesize
+*/
+
+let getQueueSize = () => {
+  let params = {
+    format: 'json',
+    h: 'id, queue', 
+    // v: true, verbose includes headers
+    threadPoolPatterns: 'search'
+  };
+
+  return client.cat.threadPool(params)
+    .then(body =>{
+      let queue = body && body[0] && body[0].queue;
+      return parseInt(queue);
+    })
+    .catch(err => console.error(err));
+};
+
+exports.getQueueSize = getQueueSize;  
 
 /**
 * check if the index exists
@@ -56,36 +80,101 @@ exports.lookupById = lookupById;
 * Search By Query
 */
 
-let baseSearch = (query, results) => { 
-  // TODO - change to return max results
+let queryBuilder = (query, limit, type = 'wide') => {
+  let queryParam;
+  if (type === 'strict') {
+    queryParam = {
+      multi_match: {
+        query: query,
+        operator: "and",
+        fields: ["title^2", "channelTitle"]
+      }
+    };
+  } else {
+    queryParam = {
+      multi_match: {
+        query: query,
+        type: "cross_fields",
+        "cutoff_frequency" : 0.05,
+        fields: ["title^2", "channelTitle", "description"]
+      }
+    };
+  };
+
+  let field_value_factor = {
+    field: "views",
+    factor: 1,
+    modifier: "ln1p",
+    missing: 1
+  };
 
   return client.search({
     index: 'bettersearch',
     body: {
+      size: limit,
       query: {
-        match: {
-          title: query
+        "function_score": {
+          query: queryParam //,
+          // field_value_factor: field_value_factor
         }
       }
     }
-  })
+  });
+};
+
+let firstSearch = (query, limit) => { 
+
+  console.time(`⚡⚡ fast query ${query}`);
+
+  return queryBuilder(query, limit, 'strict')
     .then((body) => {
-      var hits = body.hits.hits;
-      return hits;
+      if (body.hits) { 
+        return body.hits.hits;
+      } else {
+        return [];
+      }
     })
-    .catch((err) => {
-      console.trace(err.message); 
+    .then((results) =>{
+      console.timeEnd(`⚡⚡ fast query ${query}`);
+      return results;
+    })
+    .catch(err => {
+      console.timeEnd(`⚡⚡ fast query ${query}`);
+      console.error('Fast search Error Handler:', err.message); 
     });
 };
 
-exports.baseSearch = baseSearch;
+let slowSearch = (query, limit) => { 
+
+  console.time(`⚡⚡ second query ${query}`);
+
+  return queryBuilder(query, limit, 'cut')
+    .then((body) => {
+      if (body.hits) {
+        return body.hits.hits;
+      } else {
+        return [];
+      }
+    })
+    .then((results) => {
+      console.timeEnd(`⚡⚡ second query ${query}`);
+      return results;
+    })
+    .catch(err => {
+      console.timeEnd(`⚡⚡ second query ${query}`);
+      console.error('Slow search Error Handler:', err.message); 
+    });
+};
+
+exports.slowSearch = slowSearch;
+exports.firstSearch = firstSearch;
+
 
 /**
 * Update Items
 */
 
 let updateViews = (queueMessages) => {
-  // Expecting an array like ['video_id': 1234, 'views': 1232];
   console.log('~~~ updating views in database ~~~');
   let updateData = toElastic.updateViews(queueMessages);
   console.log('~~~ formatted ~~~', updateData);
@@ -100,3 +189,78 @@ let updateViews = (queueMessages) => {
 exports.updateViews = updateViews;
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// else { // type wide
+//     queryParam = {
+//       multi_match: {
+//         query: query,
+//         type: "cross_fields",
+//         fields: ["title^2", "description", "channelTitle"]
+//       }
+//     };
+//   }
+
+
+// let oldSearch = (query, limit) => {
+
+//   console.time('⚡⚡ query ⚡⚡');
+//   let wideSearch = queryBuilder(query, limit, 'wide');
+  
+//   return wideSearch
+//     .then((body) => {
+//       console.log('➺ ES query took: ', body.took, 'ms');
+//       console.timeEnd('⚡⚡ query ⚡⚡');
+//       return body.hits.hits;
+//     })
+//     .catch((err) => {
+//       console.trace('Search Error Handler:', err.message); 
+//     });
+// };
+
+// let baseSearch = (query, limit) => { 
+
+//   console.time('⚡⚡ combined query ⚡⚡');
+//   let strictSearch = queryBuilder(query, limit, 'strict');
+
+//   return strictSearch
+//     .then((body) => {
+//       console.log('➺ single query took: ', body.took, 'ms');
+
+//       if (body.hits && (body.hits.total > limit)) {
+//         console.timeEnd('⚡⚡ combined query ⚡⚡');
+//         return body.hits.hits;
+//       } else {
+//         let wideSearch = queryBuilder(query, limit, 'wide');
+
+//         return wideSearch
+//           .then((body) => {
+//             console.log('➺ single second query took: ', body.took, 'ms');
+//             console.timeEnd('⚡⚡ combined query ⚡⚡');
+//             return body.hits.hits;
+//           })
+//           .catch(err => {
+//             Promise.reject(err);
+//             console.time('⚡⚡ combined query ⚡⚡'); 
+//           });
+//       }
+//     })
+//     .catch((err) => {
+//       console.trace('Search Error Handler:', err.message); 
+//       console.time('⚡⚡ combined query ⚡⚡');
+//     });
+// };
+// cuttSearch

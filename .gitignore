@@ -27,6 +27,9 @@ coverage
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
+# Private
+newrelic.js
+
 # Compiled Dirs (http://nodejs.org/api/addons.html)
 build/
 dist/
@@ -38,4 +41,4 @@ node_modules/
 bower_components/
 
 # Large testing files
-generate-data/files/*
+test/generate-data/files/*

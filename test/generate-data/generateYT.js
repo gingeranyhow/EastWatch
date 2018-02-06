@@ -9,7 +9,6 @@ const path = require('path');
 var randomWords = require('random-words');
 
 /* FUNCTIONS */
-
 let formatAndWriteVideos = (videoArray, nextId, fileId) => {
   
   var stream = fs.createWriteStream(path.join(__dirname, `files/all/yt-${fileId}.json`), {flags: 'a'});
@@ -97,9 +96,4 @@ runSearch = (loops) => {
     }
   }, 800);
 })(rounds); 
-
-
-// order=date&type=video&key={YOUR_API_KEY}
-// other ways to order
-// https://developers.google.com/youtube/v3/docs/search/list
 

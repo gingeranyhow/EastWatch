@@ -2,16 +2,22 @@ var elasticsearch = require('elasticsearch');
 var Promise = require('bluebird');
 var fs = require('fs');
 
-var client = new elasticsearch.Client({  
+let fileBase = '/Users/christiginger/code/hackreactor/EastWatch/test/generate-data/files/all';
+
+var localClient = new elasticsearch.Client({  
   host: 'localhost:9200/bettersearch/video',
   log: 'info'
 });
-
-let fileBase = '/Users/christiginger/code/hackreactor/EastWatch/test/generate-data/files/all';
+// LOCAL ONLY
+var awsClient = new elasticsearch.Client({  
+  host: 'https://search-east-watch-qwgjpr7wgcepxn5pqbqfjirkn4.us-west-1.es.amazonaws.com/bettersearch/video',
+  log: 'info',
+  requestTimeout: 600000
+});
 
 let nonLeakyUpload = (data) => {
   return new Promise(function (resolve) {
-    client.bulk({
+    localClient.bulk({
       body: data
     })
       .then((res) => { 
@@ -22,7 +28,47 @@ let nonLeakyUpload = (data) => {
   });
 };
 
-let uploadInLoop = (myLoop, endLoop, type = 'fake') => {  
+// AWS ONLY
+
+let nonLeakyAWSUpload = (data) => {
+  return new Promise(function (resolve) {
+    awsClient.bulk({
+      body: data
+    })
+      .then((res) => { 
+        console.log('took:', res.took, '| errors:', res.errors, '| items:', res.items && res.items.length);
+        resolve(); 
+      })
+      .catch(err => console.error(err));
+  });
+};
+
+
+let splitAndUploadToAWS = (lines) => { 
+  let promiseArray = [];
+  let maxLine = 22250;
+  for (var i = 0; i < 9; i++) {
+    let start = i * maxLine;
+    let endpoint = (i + 1) * maxLine;
+    let chunk = lines.slice(start, endpoint);
+    promiseArray.push(nonLeakyAWSUpload.bind(null, chunk, 'aws'));
+  }
+
+  return promiseArray[0]()
+    .then(() => promiseArray[1] && promiseArray[1]())
+    .then(() => promiseArray[2] && promiseArray[2]())
+    .then(() => promiseArray[3] && promiseArray[3]())
+    .then(() => promiseArray[4] && promiseArray[4]())
+    .then(() => promiseArray[5] && promiseArray[5]())
+    .then(() => promiseArray[6] && promiseArray[6]())
+    .then(() => promiseArray[7] && promiseArray[7]())
+    .then(() => promiseArray[8] && promiseArray[8]())
+    .catch(err => console.error(err));  
+};
+
+// SHARED 
+
+let uploadInLoop = (myLoop, endLoop, type = 'fake', destination = 'local') => {  
   if (myLoop > endLoop) {
     return;
   }
@@ -37,15 +83,19 @@ let uploadInLoop = (myLoop, endLoop, type = 'fake') => {
 
   console.log('~~~~ starting: ', myLoop); 
 
-  return nonLeakyUpload(data)
+  let uploadFunction = (destination === 'local')
+    ? nonLeakyUpload
+    : splitAndUploadToAWS;
+
+  return uploadFunction(data)
     .then(() => {
-      return uploadInLoop(myLoop + 1, endLoop);
+      return uploadInLoop(myLoop + 1, endLoop, type, destination);
     })
     .catch((err) => console.error(err));
 };
 
-let start = 99;
-let end = 99;
-uploadInLoop(start, end, 'fake')
+let start = 80;
+let end = 80;
+uploadInLoop(start, end, 'fake', 'aws')
   .then(() => console.log('done'));
 

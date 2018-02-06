@@ -22,6 +22,28 @@ client.ping({
 });
 
 /**
+* get queuesize
+*/
+
+let getQueueSize = () => {
+  let params = {
+    format: 'json',
+    h: 'id, queue', 
+    // v: true, verbose includes headers
+    threadPoolPatterns: 'search'
+  };
+
+  return client.cat.threadPool(params)
+    .then(body =>{
+      let queue = body && body[0] && body[0].queue;
+      return parseInt(queue);
+    })
+    .catch(err => console.error(err));
+};
+
+exports.getQueueSize = getQueueSize;  
+
+/**
 * check if the index exists
 */
 

@@ -82,7 +82,6 @@ let uploadInLoop = (myLoop, endLoop, type = 'fake', destination = 'local') => {
   }
 
   console.log('~~~~ starting: ', myLoop); 
-
   let uploadFunction = (destination === 'local')
     ? nonLeakyUpload
     : splitAndUploadToAWS;

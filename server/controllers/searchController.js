@@ -112,7 +112,7 @@ const check = async ctx => {
 };
 
 const hello = async ctx => {
-  ctx.body = 'Hi Ginger';
+  ctx.body = 'Hello new Ginger!';
 };
 
 module.exports = { index, check, hello };

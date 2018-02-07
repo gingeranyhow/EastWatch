@@ -111,4 +111,8 @@ const check = async ctx => {
   } 
 };
 
-module.exports = { index, check };
+const hello = async ctx => {
+  ctx.body = 'Hi Ginger';
+};
+
+module.exports = { index, check, hello };

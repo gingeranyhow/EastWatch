@@ -44,12 +44,13 @@ app.use(trendRoutes.routes());
 // Ensure a 405 Method Not Allowed is sent
 app.use(router.allowedMethods())
 
+
+
 // Start Server
 const server = app.listen(PORT, () => {
     console.log(`👂 Server listening on port: ${PORT}`);
 }).on("error", err => {
   console.error(err);
 });
-
 
 module.exports = server;

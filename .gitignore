@@ -1,6 +1,7 @@
 # OS X
 .DS_Store
 
+
 # Runtime data
 .env
 
@@ -12,6 +13,7 @@ node_modules/
 
 # Large testing files
 test/generate-data/files/*
+.nyc_output/*
 
 # ------- FUTURE ----------
 

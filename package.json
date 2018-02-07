@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server/index.js",
-    "test": "mocha test/runner/* --exit",
-    "cover": "nyc mocha test/runner/* --exit",
+    "test": "mocha test --exit",
+    "cover": "nyc mocha test --exit && nyc report --reporter=text-lcov | coveralls",
     "mon": "nodemon --ignore generate-data/ server/index.js",
     "pm": "pm2 start server/index.js"
   },

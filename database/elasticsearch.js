@@ -3,6 +3,8 @@ const toElastic = require('./elasticFormatter.js');
 require('dotenv').config();
 
 let url = process.env.ES_URL || 'localhost:9200';
+// url = 'localhost:9200';
+
 var client = new elasticsearch.Client({  
   host: url,
   log: 'info'

@@ -1,5 +1,7 @@
+
+
 config:
-  target: 'http://127.0.0.1:3000'
+  target: 'http://127.0.0.1:3000' # 'change to AWS env url'
   # http:
   #   # Responses have to be sent within 10 seconds or the request will be aborted
   #   timeout: 5
@@ -21,10 +23,20 @@ scenarios:
       - get:
           url: "/api/search/?query={{ item }}"
       - think: 1
-      count: 6
+      count: 2
+
+# ---- G tests Production ----------
+# ~~ All: Think: 1 / Duration: 120
+
+# Arrival: 20 / Loop: 1 
+# Median, 95:  64.1,  511.5 / RPS: 19.2 / No errors
+
+#( skip 2 )
+# Arrival: 20 / Loop: 3 
+# Median, 95: 22670.4, 37717.3  / RPS: / No errors
 
 # ----- G tests 2/5 ----------
-# All: Think: 1 / Duration: 120
+# ~~ All: Think: 1 / Duration: 120
 
 # Arrival: 20 / Loop: 1 
 # Median, 95:  8.4,  29.5 / RPS: 19.19 / No errors

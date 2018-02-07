@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node server/index.js",
-    "test": "mocha test/runner/*",
+    "test": "mocha test/runner/* --exit",
+    "cover": "nyc mocha test/runner/* --exit",
     "mon": "nodemon --ignore generate-data/ server/index.js",
     "pm": "pm2 start server/index.js"
   },
@@ -36,7 +37,10 @@
     "mocha": "^5.0.0"
   },
   "devDependencies": {
+    "coveralls": "^3.0.0",
     "faker": "^4.1.0",
+    "mocha-lcov-reporter": "^1.3.0",
+    "nyc": "^11.4.1",
     "path": "^0.12.7",
     "random-words": "0.0.1"
   }

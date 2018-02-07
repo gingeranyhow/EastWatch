@@ -10,7 +10,7 @@ exports.config = {
   /**
    * Array of application names.
    */
-  app_name: ['EastWatch'],
+  app_name: ['EastWatch-dev'],
   /**
    * Your New Relic license key.
    */

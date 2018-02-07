@@ -1,8 +1,8 @@
 var elasticsearch = require('elasticsearch');
 const toElastic = require('./elasticFormatter.js');
+require('dotenv').config();
 
-let url = 'localhost:9200';
-// let url = 'https://search-east-watch-d5kj2ffyn2yiyofuhagkpot4ii.us-east-1.es.amazonaws.com/';
+let url = process.env.ES_URL || 'localhost:9200';
 var client = new elasticsearch.Client({  
   host: url,
   log: 'info'

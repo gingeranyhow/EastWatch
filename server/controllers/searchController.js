@@ -16,7 +16,7 @@ const postToMessage = (bucketId, query) => {
 }
 
 // My search function
-const index = async ctx => {
+const baseSearch = async ctx => {
   if (!ctx.query.query) {
     ctx.throw(400, 'Badly formed request. Please include query'); 
     return;
@@ -71,13 +71,15 @@ const index = async ctx => {
         return formattedSearch;
       })
       .then(searchResults => {
-        let resultsCount = (searchResults && searchResults.length) || 0
-        ctx.body = {
-          data: {
+        let response = {
             searchId: searchId,
-            count: resultsCount,
+            trends: shouldIncludeTrends,
+            count: (searchResults && searchResults.length) || 0,
             items: searchResults
           }
+
+        ctx.body = {
+          data: response
         }
       })
       .then(() => {
@@ -95,24 +97,4 @@ const index = async ctx => {
   }   
 };
 
-// Check that the bettersearch Index is up. Can disable pre-production
-
-const check = async ctx => {
-  try {
-    results = await elastic.indexExists();
-    ctx.body = {
-      status: {
-        index: results
-      }
-    }
-  } catch (error) {
-    console.error(error);
-    ctx.body = 'Sorry, no luck!';
-  } 
-};
-
-const hello = async ctx => {
-  ctx.body = 'Hello new Ginger!';
-};
-
-module.exports = { index, check, hello };
+module.exports = { baseSearch };

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server/index.js",
     "test": "mocha test --exit",
-    "cover": "nyc mocha test --exit && nyc report --reporter=text-lcov | coveralls",
+    "cover": "nyc mocha test --exit",
     "mon": "nodemon --ignore generate-data/ server/index.js",
     "pm": "pm2 start server/index.js"
   },

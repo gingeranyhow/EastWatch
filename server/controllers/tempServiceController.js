@@ -4,7 +4,7 @@ for testing purposes. Once the trend services is working
 this file can be retired
 */ 
 
-const index = async ctx => {
+const trend = async ctx => {
   const { count } = ctx.query;
 
   // if (!count) {
@@ -18,7 +18,7 @@ const index = async ctx => {
     count: 3, 
     videos: [{
       videoId: 2,
-      views: 37778650,
+      views: 10000000,
       title: "What is the best Mac keyboard?",
       description: "What is the best Mac keyboard you can buy? Is it Apple's Magic Bluetooth Wireless Keyboard or the Apple Wired USB Keyboard with Numeric Keypad? What are the best alternative Mac keyboards?...",
       publishedAt: "2017-04-01T04:15:58.000Z",
@@ -28,7 +28,7 @@ const index = async ctx => {
     },
     {
       videoId: 100,
-      views: 43361,
+      views: 10000000,
       title: "Designer Bluetooth Desktop Keyboard Review (Microsoft)",
       description: "Another video is amazoing",
       publishedAt: "2017-05-01T04:15:58.000Z",
@@ -38,7 +38,7 @@ const index = async ctx => {
     },
     {
       videoId: 500000,
-      views: 342353,
+      views: 10000000,
       title: "Garage time",
       description: "Slither.io walkthrough",
       publishedAt: "2013-04-01T04:15:58.000Z",
@@ -49,5 +49,34 @@ const index = async ctx => {
   };
 };
 
+const video = async ctx => {
+  const { id } = ctx.params;
+  if (!id) {
+    ctx.throw(500,'Error Message'); 
+    return;
+  }
 
-module.exports = { index };
+  try {
+    const video = await elastic.lookupById(id);
+    console.log('video:', video);
+
+    if (!video) {
+      throw new Error('The requested resource does not exists');
+    }
+
+    ctx.body = {
+      data: video
+    };
+  } catch (error) {
+    ctx.status = 404;
+    ctx.body = {
+      error: error.message
+    };
+  }
+};
+
+const hello = async ctx => {
+  ctx.body = 'Hello new Ginger!';
+};
+
+module.exports = { trend, video, hello};

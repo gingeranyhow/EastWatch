@@ -1,9 +1,9 @@
-var elasticsearch = require('elasticsearch');
-const toElastic = require('./elasticFormatter.js');
 require('dotenv').config();
+const elasticsearch = require('elasticsearch');
+const toElastic = require('./elasticFormatter.js');
 
 let url = process.env.ES_URL || 'localhost:9200';
-// url = 'localhost:9200';
+url = 'localhost:9200';
 
 var client = new elasticsearch.Client({  
   host: url,
@@ -22,6 +22,7 @@ client.ping({
     console.log('✓ Elastic DB responsive');
   }
 });
+
 
 /**
 * get queuesize
@@ -127,7 +128,7 @@ let queryBuilder = (query, limit, type = 'wide') => {
 let firstSearch = (query, limit) => { 
 
   console.time(`⚡⚡ fast query ${query}`);
-
+  
   return queryBuilder(query, limit, 'strict')
     .then((body) => {
       if (body.hits) { 
@@ -171,15 +172,14 @@ let slowSearch = (query, limit) => {
 exports.slowSearch = slowSearch;
 exports.firstSearch = firstSearch;
 
-
 /**
 * Update Items
 */
 
-let updateViews = (queueMessages) => {
-  console.log('~~~ updating views in database ~~~');
-  let updateData = toElastic.updateViews(queueMessages);
-  console.log('~~~ formatted ~~~', updateData);
+let updateViews = (videoViewsArray) => {
+  // console.log('~~~ updating views in database ~~~');
+  let updateData = toElastic.buildElasticUpdateObjects(videoViewsArray);
+  // console.log('~~~ formatted ~~~', updateData);
   return client.bulk({
     body: updateData
   })
@@ -191,78 +191,3 @@ let updateViews = (queueMessages) => {
 exports.updateViews = updateViews;
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// else { // type wide
-//     queryParam = {
-//       multi_match: {
-//         query: query,
-//         type: "cross_fields",
-//         fields: ["title^2", "description", "channelTitle"]
-//       }
-//     };
-//   }
-
-
-// let oldSearch = (query, limit) => {
-
-//   console.time('⚡⚡ query ⚡⚡');
-//   let wideSearch = queryBuilder(query, limit, 'wide');
-  
-//   return wideSearch
-//     .then((body) => {
-//       console.log('➺ ES query took: ', body.took, 'ms');
-//       console.timeEnd('⚡⚡ query ⚡⚡');
-//       return body.hits.hits;
-//     })
-//     .catch((err) => {
-//       console.trace('Search Error Handler:', err.message); 
-//     });
-// };
-
-// let baseSearch = (query, limit) => { 
-
-//   console.time('⚡⚡ combined query ⚡⚡');
-//   let strictSearch = queryBuilder(query, limit, 'strict');
-
-//   return strictSearch
-//     .then((body) => {
-//       console.log('➺ single query took: ', body.took, 'ms');
-
-//       if (body.hits && (body.hits.total > limit)) {
-//         console.timeEnd('⚡⚡ combined query ⚡⚡');
-//         return body.hits.hits;
-//       } else {
-//         let wideSearch = queryBuilder(query, limit, 'wide');
-
-//         return wideSearch
-//           .then((body) => {
-//             console.log('➺ single second query took: ', body.took, 'ms');
-//             console.timeEnd('⚡⚡ combined query ⚡⚡');
-//             return body.hits.hits;
-//           })
-//           .catch(err => {
-//             Promise.reject(err);
-//             console.time('⚡⚡ combined query ⚡⚡'); 
-//           });
-//       }
-//     })
-//     .catch((err) => {
-//       console.trace('Search Error Handler:', err.message); 
-//       console.time('⚡⚡ combined query ⚡⚡');
-//     });
-// };
-// cuttSearch

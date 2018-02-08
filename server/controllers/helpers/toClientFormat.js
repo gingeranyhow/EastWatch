@@ -15,22 +15,19 @@
 //      thumbnails: { default: [Object], medium: [Object], high: [Object] } } }
 
 let elasticVideoSummaryToClient = (v) => {
-  if (typeof(v._source) !== 'object') {
-    return;
+  if (typeof(v._source) === 'object') {
+    let source = v._source;
+    return {
+      videoId: source.videoId,
+      views: source.views,
+      title: source.title,
+      description: source.description,
+      publishedAt: source.publishedAt,
+      channelTitle: source.channelTitle,
+      duration: source.duration,
+      thumbnails: source.thumbanils
+    };
   }
-
-  let source = v._source;
-  return {
-    videoId: source.videoId,
-    views: source.views,
-    title: source.title,
-    description: source.description,
-    publishedAt: source.publishedAt,
-    channelTitle: source.channelTitle,
-    duration: source.duration,
-    thumbnails: source.thumbanils
-  };
 };
-
 
 module.exports = {elasticVideoSummaryToClient};

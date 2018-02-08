@@ -6,8 +6,8 @@ const router = new Router();
 // Require routes
 
 const searchRoutes = require('./routes/search.routes');
-const videoRoutes = require('./routes/video.routes');
-const trendRoutes = require('./routes/trends.routes');
+const serviceRoutes = require('./routes/service.routes');
+
 // const viewsController = require('./controllers/viewsController');
 
 const app = new Koa();
@@ -29,12 +29,15 @@ app.use(async (ctx, next) => {
   console.log(`${ctx.method} ${ctx.url} \n⤷ Response time is: ${ms}ms`);
 });
 
+// Create middleware that adds a bucket ID onto 
+// the user
+
 // Routes
 app.use(searchRoutes.routes());
-app.use(videoRoutes.routes());
 
-// Temporary Routes to Fake the endpoints I will call to other services
-app.use(trendRoutes.routes());
+// Temporary Routes that 
+// create fake endpoints
+app.use(serviceRoutes.routes());
 
 // Start Listener for MessageBus Queues
 
@@ -43,7 +46,6 @@ app.use(trendRoutes.routes());
 
 // Ensure a 405 Method Not Allowed is sent
 app.use(router.allowedMethods())
-
 
 
 // Start Server

@@ -50,28 +50,25 @@ const trend = async ctx => {
 };
 
 const video = async ctx => {
-  const { id } = ctx.params;
-  if (!id) {
-    ctx.throw(500,'Error Message'); 
+  const { videoId } = ctx.query;
+
+  // Fake missing video
+  if (videoId === '6666666666666') {
+    ctx.throw(404, 'No video found'); 
     return;
-  }
+  } 
 
-  try {
-    const video = await elastic.lookupById(id);
-    console.log('video:', video);
-
-    if (!video) {
-      throw new Error('The requested resource does not exists');
+  ctx.body = {
+    video: {
+      videoId: parseInt(videoId),
+      views: 10000000,
+      title: "What is the best Mac keyboard?",
+      description: "What is the best Mac keyboard you can buy? Is it Apple's Magic Bluetooth Wireless Keyboard or the Apple Wired USB Keyboard with Numeric Keypad? What are the best alternative Mac keyboards?...",
+      publishedAt: "2017-04-01T04:15:58.000Z",
+      channelTitle: "FIRECALL",
+      duration: 6666666,
+      videoUrl: "http://video.com"
     }
-
-    ctx.body = {
-      data: video
-    };
-  } catch (error) {
-    ctx.status = 404;
-    ctx.body = {
-      error: error.message
-    };
   }
 };
 

@@ -22,6 +22,7 @@ const baseSearch = async ctx => {
     return;
   }
 
+  console.log('where is state:', this.state, ctx.state);
   // Set up variables based on experiment bucketing
   let bucketId = abService(ctx.query.userId);
   let shouldIncludeTrends = (bucketId === 2);
@@ -46,7 +47,6 @@ const baseSearch = async ctx => {
         }
       })
       .then(([trend, search]) => {
-        console.log('continued here');
         if (search === undefined || search.length < neededSearchResults) {
           return elastic.slowSearch(ctx.query.query, neededSearchResults)
             .then((search) => [trend, search]);

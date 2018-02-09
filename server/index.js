@@ -8,13 +8,14 @@ const abService = require('./controllers/helpers/abService.js');
 const searchRoutes = require('./routes/search.routes');
 const serviceRoutes = require('./routes/service.routes');
 const videoRoutes = require('./routes/video.routes');
+const eventRoutes = require('./routes/event.routes');
 
 // const viewsController = require('./controllers/viewsMessageBusController');
 
 const app = new Koa();
 const PORT = process.env.PORT || 3000;
 
-// X-response-time
+// Middleware to add X-response-time
 app.use(async (ctx, next) => {
   const start = Date.now();
   await next();
@@ -22,43 +23,42 @@ app.use(async (ctx, next) => {
   ctx.set('X-Response-Time', `${ms}ms`);
 });
 
-// Logger
-app.use(async (ctx, next) => {
-  const start = Date.now();
-  await next();
-  const ms = Date.now() - start;
-  console.log(`${ctx.method} ${ctx.url} \n⤷ Response time is: ${ms}ms`);
-});
+// // Middleware to console log response time
+// app.use(async (ctx, next) => {
+//   const start = Date.now();
+//   await next();
+//   const ms = Date.now() - start;
+//   console.log(`${ctx.method} ${ctx.url} \n⤷ Response time is: ${ms}ms`);
+// });
 
-// Video Route
+// Video Route (web server passthrough as of now)
+
 app.use(videoRoutes.routes());
 
-// Create middleware that adds a bucket ID onto 
+// Web server middleware that hydrates ctx with experiment bucket ID
+app.use(async (ctx, next) => {
+  ctx.state.bucketId = abService(ctx.query.userId);
+  await next();
+})
 
-// app.use(async (ctx, next) => {
-//   if (ctx.query.userId) {
-//     ctx.state.bucketId = abService(ctx.query.userId);
-//   }
-//   await next();
-// })
+// Events Routes (web server passthrough)
+app.use(eventRoutes.routes());
 
 // Search Routes
 app.use(searchRoutes.routes());
 
-// Events Routes
+// Kick off Message bus listeners
 
+// Start Listener for MessageBus Queues
+// let minutesInMS = 2 * 60000;
+// setInterval(viewsController.updateViews, minutesInMS);
 
-// Temporary Routes (Will be replaced)
+// Mounting temporary Routes to replicate other services (Delete on prod)
 app.use(serviceRoutes.routes());
 
 // Ensure a 405 Method Not Allowed is sent
 app.use(router.allowedMethods())
 
-// Message Bus
-
-// Start Listener for MessageBus Queues
-// let minutesInMS = 2 * 60000;
-// setInterval(viewsController.updateViews, minutesInMS);
 
 // Start Server
 const server = app.listen(PORT, () => {

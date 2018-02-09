@@ -5,8 +5,8 @@ const axios = require('axios');
 
 const elastic = require('../../database/elasticsearch.js');
 const abService = require('./helpers/abService.js');
-const toClientFormat = require('./helpers/toClientFormat.js')
-let trendingEndpoint = 'http://127.0.0.1:3000/service/trending';
+const toClientFormat = require('./helpers/toClientFormat.js');
+const serviceEndpoints = require('./helpers/endpoint-routes.js');
 
 // Probably will move this to another file
 // This is posting to the Events queue
@@ -21,11 +21,8 @@ const baseSearch = async ctx => {
     ctx.throw(400, 'Badly formed request. Please include query'); 
     return;
   }
-
-  console.log('where is state:', this.state, ctx.state);
-  // Set up variables based on experiment bucketing
-  let bucketId = abService(ctx.query.userId);
-  let shouldIncludeTrends = (bucketId === 2);
+  
+  let shouldIncludeTrends = (ctx.state.bucketId === 2);
   let neededSearchResults = shouldIncludeTrends ? 7 : 10;
 
   let searchId = 34;
@@ -39,7 +36,7 @@ const baseSearch = async ctx => {
         } else {
           console.log('queue size:', size)
           let trendPromise = shouldIncludeTrends 
-            ? axios.get(trendingEndpoint)
+            ? axios.get(serviceEndpoints.trendingEndpoint)
             : Promise.resolve(undefined);
     
           let searchPromise = elastic.firstSearch(ctx.query.query, neededSearchResults);

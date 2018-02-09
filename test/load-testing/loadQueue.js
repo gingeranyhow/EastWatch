@@ -1,25 +1,53 @@
-/* This file supports me loading queues that 
-// will eventually be populated by other microservices
-*/
+/* This file supports me loading queues that other people will later support*/
 
-/* URLs */
-let viewsQueue = 'https://sqs.us-west-1.amazonaws.com/361175477919/EastWatch-views';
+const serviceEndpoints = require('../../server/controllers/helpers/endpoint-routes.js');
+const sqsSend = require('../../server/controllers/helpers/sqs-send.js');
+const sqsReceive = require('../../server/controllers/helpers/sqs-receive.js');
+let myQueue = serviceEndpoints.incomingVideoSQS;
 
 /* Test Data Sources */
-let testViewData = require('./files/viewQueue.js');
+let updateVid = [
+  {"videoId": 1234, "views": 10000},
+  {"videoId": 22, "views": 14},
+  {"videoId": 679, "views": 303432},
+  {"videoId": 1553, "views": 3432},
+  {"videoId": 3353, "views": 1000},
+  {"videoId": 3753, "views": 666},
+  {"videoId": 3753, "title": "noway"},
+  {"videoId": 3553, "views": 78},
+  {"videoId": 3953, "views": 9999999},
+];
+
+let createVid = [{
+  "videoId": 1234, 
+  "views": 10000,
+  "title": "bananazzzzzzzzzzzzzzzz",
+  "description": "bananazzzzzzzzzzzzzzzz"
+}];
+
+let deleteVid = [
+  {"videoId": 1234}
+];
 
 /* Helper Functions */
 
-let populateQueueViewWithTest = (testData) => {
+let populateQueueViewWithTest = (testData, type) => {
   let messageAttributes = {
-    "count": {
-      DataType: "Number",
-      StringValue: testData.length.toString()
+    "event": {
+      DataType: "String",
+      StringValue: type
     }
   };
 
-  sqsHelpers.addToQueue(viewsQueue, testData, messageAttributes);
+  sqsSend.addToQueue(myQueue, testData, messageAttributes)
+    .then(results => console.log(results))
+    .catch(err => console.error(err));
 };
 
 /* Run Test Data */ 
-populateQueueViewWithTest(testViewData);
+populateQueueViewWithTest(updateVid, 'update');
+populateQueueViewWithTest(deleteVid, 'delete');
+populateQueueViewWithTest(createVid, 'create');
+
+//sqsReceive.checkQueue(myQueue);
+

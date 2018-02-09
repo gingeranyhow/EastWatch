@@ -1,5 +1,5 @@
 const axios = require('axios');
-let videoEndpoint = 'http://127.0.0.1:3000/service/video';
+const serviceEndpoints = require('./helpers/endpoint-routes.js');
 
 const getVideo = async ctx => {
   const videoId = ctx.params.videoId;
@@ -9,7 +9,7 @@ const getVideo = async ctx => {
     return;
   }
 
-  let results = await axios.get(videoEndpoint, {params: {videoId: videoId}})
+  let results = await axios.get(serviceEndpoints.videoEndpoint, {params: {videoId: videoId}})
     .then((results)=> {
       return results.data;
     })

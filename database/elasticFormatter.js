@@ -1,23 +1,37 @@
 
-let create_action_and_meta_data = (video_id) => {
-  return {update: {
-    _index: 'bettersearch', 
-    _type: 'video', 
-    _id: video_id
-  }};
+let create_action_and_meta_data = (video_id, action) => {
+  if (action) {
+    return {[action]: {
+      _index: 'bettersearch', 
+      _type: 'video', 
+      _id: video_id
+    }};
+  }
 };
 
-let buildElasticUpdateObjects = (arrayOfVideoViews) => {
+let buildElasticUpdateObjects = (arrayOfVideoObjects, action) => {
   //input format
-  // array of videos and views
   // [{videoId: 23, views: 12324}, {videoId: 27, views: 34223} ]
-  let exportable = [];
+  let validActions = ['create', 'delete', 'index', 'update'];
+  if (validActions.indexOf(action) === -1 || !Array.isArray(arrayOfVideoObjects)) {
+    return;
+  }
 
-  arrayOfVideoViews.forEach(item => {
-    let action_and_meta_data = create_action_and_meta_data(item.videoId);
-    let optional_source = {doc: {views: item.views}};
+  let exportable = [];
+  arrayOfVideoObjects.forEach(item => {
+    let action_and_meta_data = create_action_and_meta_data(item.videoId, action);
     exportable.push(action_and_meta_data);
-    exportable.push(optional_source);
+
+    if (action !== 'delete') {
+      let optional_source;
+      if (action === 'update') {
+        optional_source = {doc: item}; 
+      } else if (action === 'create' || action === 'index') {
+        optional_source = item;
+      }
+
+      exportable.push(optional_source); 
+    } 
   });
 
   return exportable; 

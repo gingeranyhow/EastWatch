@@ -10,8 +10,8 @@ let create_action_and_meta_data = (video_id, action) => {
 };
 
 let buildElasticUpdateObjects = (arrayOfVideoObjects, action) => {
-  //input format
-  // [{videoId: 23, views: 12324}, {videoId: 27, views: 34223} ]
+  // format: [{videoId: 23, views: 12324}, {videoId: 27, views: 34223} ]
+  
   let validActions = ['create', 'delete', 'index', 'update'];
   if (validActions.indexOf(action) === -1 || !Array.isArray(arrayOfVideoObjects)) {
     return;

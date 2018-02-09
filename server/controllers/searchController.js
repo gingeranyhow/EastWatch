@@ -4,18 +4,12 @@ const axios = require('axios');
 // Helper functions
 
 const elastic = require('../../database/elasticsearch.js');
-const abService = require('./helpers/abService.js');
 const toClientFormat = require('./helpers/toClientFormat.js');
 const serviceEndpoints = require('./helpers/endpoint-routes.js');
-
-// Probably will move this to another file
-// This is posting to the Events queue
-
-const postToMessage = (bucketId, query) => {
- //  setTimeout(function() { console.log('this represents me sending something to a message queue', bucketId, query); }, 5000);
-}
+const sqsSend = require('./helpers/sqs-send.js');
 
 // My search function
+
 const baseSearch = async ctx => {
   if (!ctx.query.query) {
     ctx.throw(400, 'Badly formed request. Please include query'); 
@@ -80,17 +74,28 @@ const baseSearch = async ctx => {
         }
       })
       .then(() => {
-        // Aftewards, process out
-        // postToMessage(bucketId, ctx.query.userId);
+        // Send action to Events Service
+        let messageBody = {
+          userId: ctx.query.userId,
+          event: 'search',
+          timestamp: Date.now(),
+          search: {
+            searchId: searchId,
+            bucketId: ctx.state.bucketId || 1
+          }
+        };
+        
+        return sqsSend.addToQueue(serviceEndpoints.eventsSQS, messageBody, {});
       })
+      .then((res) => console.log(res))
       .catch(err => {
         ctx.throw(500, `Error: Server error`);
-        console.error('Inner retrieving search results', err)
+        // console.error('Inner retrieving search results', err)
       });
   } catch (err) {
     ctx.throw(500, `Error: Server error`);
-    console.error('Outer retrieving search results', err);
-    return;
+    // console.error('Outer retrieving search results', err);
+    // return;
   }   
 };
 

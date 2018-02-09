@@ -1,8 +1,12 @@
 const chai = require('chai');
 const should = chai.should();
 const elastic = require('../../database/elasticsearch.js');
+const sqsReceive = require('../../server/controllers/helpers/sqs-receive.js');
+const sqsSend = require('../../server/controllers/helpers/sqs-send.js');
+const messageBusController = require('../../server/controllers/messageBusControllers.js');
+const serviceEndpoints = require('../../server/controllers/helpers/endpoint-routes.js');
 
-describe('Updating Elasticsearch video data, unit tests', () => {
+describe('Unit Test: Updating Elasticsearch video data', () => {
   describe('update view count by 10', () => {
     let videoId = 1;
     it('should return updated count', done => {
@@ -105,3 +109,60 @@ describe('Updating Elasticsearch video data, unit tests', () => {
     });
   });
 });
+
+describe('Integration Test via MB: Updating Elasticsearch video data', () => {
+  describe('update view count in bulk', () => {
+    let videoId = 10000666;
+
+    let videoToCreate = [{
+      videoId: videoId,
+      title: 'dobyz',
+      views: 2
+    }];
+
+    let videoToUpdate = [{
+      videoId: videoId,
+      views: 22
+    }];
+
+    let messageAttributes = {
+      "event": {
+        DataType: "String",
+        StringValue: "update"
+      }
+    };
+
+    it('should return updated count', function(done) {
+      // Create the test video
+      this.timeout(10000);
+      elastic.updateElasticVideoData(videoToCreate, 'create')
+        .then(() => {
+          // Add a message to the Queue with the update object
+          return sqsSend.addToQueue(serviceEndpoints.incomingVideoSQS, videoToUpdate, messageAttributes);
+        })
+        .then(() => {
+          // Trigger a pull/process from the same Queue
+          messageBusController.kickoff();
+          return;
+        })
+        .then(() => {
+          // Lookup the video in question by ID
+          this.timeout(1500);
+          return elastic.lookupById(videoId);
+        })
+        .then((results) => {
+          console.log('results:', results);
+          should.exist(results.videoId);
+          results.videoId.should.eql(results.videoId);
+          results.title.should.eql(videoToCreate[0].title);
+          results.views.should.eql(videoToUpdate[0].views);
+          // Clean up by deleting video
+          return elastic.updateElasticVideoData([{videoId: videoId}], 'delete');
+        })
+        .then(() => done())
+        .catch(err => console.error(err));
+    });
+  });
+});
+
+

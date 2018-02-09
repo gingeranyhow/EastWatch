@@ -75,9 +75,5 @@ describe('Events/Actions endpoint', () => {
           done();
         });
     });
-  }),
-  describe('Test Message Bus for actions', () => {
-    xit('should post a message bus message with correct bucketID', done => {
-    });
   });
 });

@@ -4,6 +4,7 @@ const serviceEndpoints = require('../../server/controllers/helpers/endpoint-rout
 const sqsSend = require('../../server/controllers/helpers/sqs-send.js');
 const sqsReceive = require('../../server/controllers/helpers/sqs-receive.js');
 let myQueue = serviceEndpoints.incomingVideoSQS;
+let testQueue = serviceEndpoints.testSQS;
 
 /* Test Data Sources */
 let updateVid = [
@@ -49,5 +50,5 @@ let populateQueueViewWithTest = (testData, type) => {
 // populateQueueViewWithTest(deleteVid, 'delete');
 // populateQueueViewWithTest(createVid, 'create');
 
-sqsReceive.checkQueue(myQueue);
+sqsReceive.checkQueue(testQueue);
 

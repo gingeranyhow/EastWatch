@@ -12,6 +12,6 @@ let startMessageBusListener = () => {
   sqs.updateAndDelete(serviceEndpoints.incomingVideoSQS, processEachMessage);
 };
 
-startMessageBusListener();
+// startMessageBusListener();
 
 module.exports.kickoff = startMessageBusListener;

@@ -149,7 +149,7 @@ let firstSearch = (query, limit) => {
 
 let slowSearch = (query, limit) => { 
 
-  console.time(`⚡⚡ second query ${query}`);
+  // console.time(`⚡⚡ second query ${query}`);
 
   return queryBuilder(query, limit, 'cut')
     .then((body) => {
@@ -160,11 +160,11 @@ let slowSearch = (query, limit) => {
       }
     })
     .then((results) => {
-      console.timeEnd(`⚡⚡ second query ${query}`);
+      //  console.timeEnd(`⚡⚡ second query ${query}`);
       return results;
     })
     .catch(err => {
-      console.timeEnd(`⚡⚡ second query ${query}`);
+      // console.timeEnd(`⚡⚡ second query ${query}`);
       console.error('Slow search Error Handler:', err.message); 
     });
 };
@@ -178,8 +178,6 @@ exports.firstSearch = firstSearch;
 
 let updateElasticVideoData = (videoArray, action) => {
   let updateData = toElastic.buildElasticUpdateObjects(videoArray, action);
-  console.log('this is right, video:', Array.isArray(videoArray), videoArray);
-  console.log('this is right, formatted:', updateData);
   return client.bulk({
     body: updateData
   })

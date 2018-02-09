@@ -10,9 +10,7 @@ AWS.config.credentials = credentials;
 AWS.config.update({region: 'us-west-1'});
 AWS.config.setPromisesDependency(require('bluebird'));
 
-
 // Helper function for processing and deleting messages from Queues
-
 let updateAndDelete = (queueUrl, callback) => {
   const app = Consumer.create({
     queueUrl: queueUrl,

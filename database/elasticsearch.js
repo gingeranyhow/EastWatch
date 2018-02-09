@@ -2,8 +2,11 @@ require('dotenv').config();
 const elasticsearch = require('elasticsearch');
 const toElastic = require('./elasticFormatter.js');
 
-let url = process.env.ES_URL || 'localhost:9200';
-url = 'localhost:9200';
+let environment = process.env.ENVIR || 'production';
+
+let url = (environment === 'production')
+  ? process.env.ES_URL
+  : 'localhost:9200';
 
 var client = new elasticsearch.Client({  
   host: url,

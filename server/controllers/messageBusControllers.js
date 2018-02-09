@@ -5,7 +5,7 @@ const elastic = require('../../database/elasticsearch.js');
 let processEachMessage = (message) => {
   let videoArray = message.Body;
   let actionType = message.MessageAttributes.event.StringValue;
-  elastic.updateElasticVideoData(videoArray, actionType);
+  elastic.updateElasticVideoData(JSON.parse(videoArray), actionType);
 };
 
 let startMessageBusListener = () => {

@@ -29,6 +29,41 @@ describe('Updating Elasticsearch video data, unit tests', () => {
         .catch(err => console.error(err));
     });
   });
+  describe('update view count in bulk', () => {
+    let videoId = 14;
+    let updateBy = 50;
+    it('should return updated count', done => {
+      // Get initial View count
+      elastic.lookupById(videoId)
+        .then(results => {
+          let initialView = results.views;
+
+          let updateObject = [{
+            videoId: 99,
+            views: initialView + updateBy
+          },
+          {
+            videoId: videoId,
+            views: initialView + updateBy
+          },
+          {
+            videoId: 100,
+            views: initialView + updateBy
+          }];
+
+          // Update views
+          return Promise.all([initialView, elastic.updateElasticVideoData(updateObject, 'update')]);
+        })
+        .then(([initialView, results]) => {
+          return Promise.all([initialView, elastic.lookupById(videoId)]);
+        })
+        .then(([initialView, results]) => {
+          results.views.should.equal(initialView + updateBy);
+          done();
+        })
+        .catch(err => console.error(err));
+    });
+  });
   describe('add and delete a video', () => {
     let videoId = 10666666;
     let video = {

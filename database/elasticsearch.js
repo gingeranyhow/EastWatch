@@ -173,12 +173,13 @@ exports.slowSearch = slowSearch;
 exports.firstSearch = firstSearch;
 
 /**
-* Update Items
+* Update Video Items in Database
 */
 
 let updateElasticVideoData = (videoArray, action) => {
   let updateData = toElastic.buildElasticUpdateObjects(videoArray, action);
-
+  console.log('this is right, video:', Array.isArray(videoArray), videoArray);
+  console.log('this is right, formatted:', updateData);
   return client.bulk({
     body: updateData
   })
@@ -188,49 +189,3 @@ let updateElasticVideoData = (videoArray, action) => {
 };
 
 exports.updateElasticVideoData = updateElasticVideoData;
-
-// let updateViews = (videoViewsArray) => {
-//   // console.log('~~~ updating views in database ~~~');
-//   let updateData = toElastic.buildElasticUpdateObjects(videoViewsArray, 'update');
-//   // console.log('~~~ formatted ~~~', updateData);
-//   return client.bulk({
-//     body: updateData
-//   })
-//     .catch(err => {
-//       console.error(err);
-//     });
-// };
-
-// exports.updateViews = updateViews;
-
-// /**
-// * Add video
-// */
-
-// let addNewVideos = (videoCreateArray) => {
-//   let updateData = toElastic.buildElasticUpdateObjects(videoCreateArray, 'create');
-//   return client.bulk({
-//     body: updateData
-//   })
-//     .catch(err => {
-//       console.error(err);
-//     });
-// };
-
-// exports.addNewVideos = addNewVideos;
-
-// /**
-// * Add video
-// */
-
-// let deleteVideos = (videoDeleteArray) => {
-//   let updateData = toElastic.buildElasticUpdateObjects(videoDeleteArray, 'delete');
-//   return client.bulk({
-//     body: updateData
-//   })
-//     .catch(err => {
-//       console.error(err);
-//     });
-// };
-
-// exports.deleteVideos = deleteVideos;

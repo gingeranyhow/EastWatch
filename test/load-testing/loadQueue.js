@@ -45,9 +45,9 @@ let populateQueueViewWithTest = (testData, type) => {
 };
 
 /* Run Test Data */ 
-populateQueueViewWithTest(updateVid, 'update');
-populateQueueViewWithTest(deleteVid, 'delete');
-populateQueueViewWithTest(createVid, 'create');
+// populateQueueViewWithTest(updateVid, 'update');
+// populateQueueViewWithTest(deleteVid, 'delete');
+// populateQueueViewWithTest(createVid, 'create');
 
-//sqsReceive.checkQueue(myQueue);
+sqsReceive.checkQueue(myQueue);
 

@@ -3,14 +3,16 @@ var Promise = require('bluebird');
 var fs = require('fs');
 
 let fileBase = '/Users/christiginger/code/hackreactor/EastWatch/test/generate-data/files/all';
-
+// LOCAL ONLY
 var localClient = new elasticsearch.Client({  
   host: 'localhost:9200/bettersearch/video',
   log: 'info'
 });
-// LOCAL ONLY
+
+// AWS ONLY
 var awsClient = new elasticsearch.Client({  
-  host: 'https://search-east-watch-qwgjpr7wgcepxn5pqbqfjirkn4.us-west-1.es.amazonaws.com/bettersearch/video',
+  //host: 'https://search-east-watch-qwgjpr7wgcepxn5pqbqfjirkn4.us-west-1.es.amazonaws.com/bettersearch/video',
+  host: 'https://search-eastwatch-2-phxnqe6eimpxlwtbgpgikpp2tm.us-west-1.es.amazonaws.com/bettersearch/video',
   log: 'info',
   requestTimeout: 600000
 });
@@ -28,8 +30,7 @@ let nonLeakyUpload = (data) => {
   });
 };
 
-// AWS ONLY
-
+// AWS ----> 
 let nonLeakyAWSUpload = (data) => {
   return new Promise(function (resolve) {
     awsClient.bulk({
@@ -93,8 +94,8 @@ let uploadInLoop = (myLoop, endLoop, type = 'fake', destination = 'local') => {
     .catch((err) => console.error(err));
 };
 
-let start = 80;
-let end = 80;
+let start = 71;
+let end = 99;
 uploadInLoop(start, end, 'fake', 'aws')
   .then(() => console.log('done'));
 

@@ -1,10 +1,11 @@
 require('dotenv').config();
 const elasticsearch = require('elasticsearch');
 const toElastic = require('./elasticFormatter.js');
+let statsDClient = require('../server/controllers/helpers/statsDClient.js');
 
-let environment = process.env.ENVIR || 'production';
+let environment = process.env.ENVIR || 'prod';
 
-let url = (environment === 'production')
+let url = (environment === 'prod')
   ? process.env.ES_URL
   : 'localhost:9200';
 
@@ -13,6 +14,7 @@ var client = new elasticsearch.Client({
   log: 'info'
 });
 
+// let index = 'bettersearch_basic';
 let index = 'bettersearch';
 let type = 'video';
 
@@ -25,7 +27,6 @@ client.ping({
     console.log('✓ Elastic DB responsive');
   }
 });
-
 
 /**
 * get queuesize
@@ -130,7 +131,9 @@ let queryBuilder = (query, limit, type = 'wide') => {
 
 let firstSearch = (query, limit) => { 
 
-  console.time(`⚡⚡ fast query ${query}`);
+  const start = Date.now();
+  
+  // console.time(`⚡⚡ fast query ${query}`);
   
   return queryBuilder(query, limit, 'strict')
     .then((body) => {
@@ -141,18 +144,19 @@ let firstSearch = (query, limit) => {
       }
     })
     .then((results) =>{
-      console.timeEnd(`⚡⚡ fast query ${query}`);
+      statsDClient.timing('.search.primary.response_time',  Date.now() - start);
+      //console.timeEnd(`⚡⚡ fast query ${query}`);
       return results;
     })
     .catch(err => {
-      console.timeEnd(`⚡⚡ fast query ${query}`);
+      // console.timeEnd(`⚡⚡ fast query ${query}`);
       console.error('Fast search Error Handler:', err.message); 
     });
 };
 
 let slowSearch = (query, limit) => { 
-
-  // console.time(`⚡⚡ second query ${query}`);
+  const start = Date.now();
+ //  console.time(`⚡⚡ second query ${query}`);
 
   return queryBuilder(query, limit, 'cut')
     .then((body) => {
@@ -163,7 +167,8 @@ let slowSearch = (query, limit) => {
       }
     })
     .then((results) => {
-      //  console.timeEnd(`⚡⚡ second query ${query}`);
+      statsDClient.timing('.search.fallback.response_time',  Date.now() - start);
+      // console.timeEnd(`⚡⚡ second query ${query}`);
       return results;
     })
     .catch(err => {

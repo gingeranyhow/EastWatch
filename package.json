@@ -24,6 +24,7 @@
   },
   "homepage": "https://github.com/BetterSearch/EastWatch#readme",
   "dependencies": {
+    "appmetrics-statsd": "^2.0.0",
     "aws-sdk": "^2.188.0",
     "axios": "^0.17.1",
     "bluebird": "^3.5.1",

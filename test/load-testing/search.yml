@@ -7,9 +7,9 @@ config:
   tls:
     rejectUnauthorized: false
   phases:
-    - duration: 5
+    - duration: 15
       arrivalRate: 5
-    - duration: 120
+    - duration: 300
       arrivalRate: 20
   payload:
     path: './searches.csv'
@@ -22,7 +22,7 @@ scenarios:
       - get:
           url: "/api/search/?query={{ item }}"
       - think: 1
-      count: 2
+      count: 1
 
 # ---- G tests Production ----------
 # ~~ All: Think: 1 / Duration: 120

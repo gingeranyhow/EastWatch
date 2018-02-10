@@ -3,13 +3,13 @@ const Koa = require('koa');
 const Router = require('koa-router');
 const router = new Router();
 const abService = require('./controllers/helpers/abService.js');
+const statsDClient = require('./controllers/helpers/statsDClient.js');
 
 // Require routes
 const searchRoutes = require('./routes/search.routes');
 const serviceRoutes = require('./routes/service.routes');
 const videoRoutes = require('./routes/video.routes');
 const eventRoutes = require('./routes/event.routes');
-
 // const viewsController = require('./controllers/viewsMessageBusController');
 
 const app = new Koa();
@@ -20,24 +20,18 @@ app.use(async (ctx, next) => {
   const start = Date.now();
   await next();
   const ms = Date.now() - start;
+  statsDClient.timing('.response_time', ms);
   ctx.set('X-Response-Time', `${ms}ms`);
 });
 
-// // Middleware to console log response time
-// app.use(async (ctx, next) => {
-//   const start = Date.now();
-//   await next();
-//   const ms = Date.now() - start;
-//   console.log(`${ctx.method} ${ctx.url} \n⤷ Response time is: ${ms}ms`);
-// });
-
 // Video Route (web server passthrough as of now)
-
 app.use(videoRoutes.routes());
 
 // Web server middleware that hydrates ctx with experiment bucket ID
 app.use(async (ctx, next) => {
+  const start = Date.now();
   ctx.state.bucketId = abService(ctx.query.userId);
+  statsDClient.timing('.bucket.response_time', Date.now() - start);
   await next();
 })
 
@@ -48,7 +42,6 @@ app.use(eventRoutes.routes());
 app.use(searchRoutes.routes());
 
 // Kick off Message bus listeners
-
 // Start Listener for MessageBus Queues
 // let minutesInMS = 2 * 60000;
 // setInterval(viewsController.updateViews, minutesInMS);

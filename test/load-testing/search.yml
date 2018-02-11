@@ -22,7 +22,7 @@ scenarios:
       - get:
           url: "/api/search/?query={{ item }}"
       - think: 1
-      count: 1
+      count: 2
 
 # ---- G tests Production ----------
 # ~~ All: Think: 1 / Duration: 120

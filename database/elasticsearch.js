@@ -1,10 +1,12 @@
 require('dotenv').config();
+const statsD = require('node-statsd');
 const elasticsearch = require('elasticsearch');
 const toElastic = require('./elasticFormatter.js');
-let statsDClient = require('../server/controllers/helpers/statsDClient.js');
+
+const statsDClientModule = require('../server/controllers/helpers/statsDClient.js');
+let statsDClient = statsDClientModule();
 
 let environment = process.env.ENVIR || 'prod';
-
 let url = (environment === 'prod')
   ? process.env.ES_URL
   : 'localhost:9200';
@@ -13,10 +15,6 @@ var client = new elasticsearch.Client({
   host: url,
   log: 'info'
 });
-
-// let index = 'bettersearch_basic';
-let index = 'bettersearch';
-let type = 'video';
 
 client.ping({
   requestTimeout: 30000,
@@ -27,6 +25,12 @@ client.ping({
     console.log('✓ Elastic DB responsive');
   }
 });
+
+
+// let index = 'bettersearch_basic';
+let index = 'bettersearch';
+let type = 'video';
+
 
 /**
 * get queuesize
@@ -101,8 +105,8 @@ let queryBuilder = (query, limit, type = 'wide') => {
     queryParam = {
       multi_match: {
         query: query,
-        type: "cross_fields",
-        "cutoff_frequency" : 0.05,
+        type: "best_fields",
+        cutoff_frequency: 0.01,
         fields: ["title^2", "channelTitle", "description"]
       }
     };
@@ -144,7 +148,7 @@ let firstSearch = (query, limit) => {
       }
     })
     .then((results) =>{
-      statsDClient.timing('.search.primary.response_time',  Date.now() - start);
+      statsDClient.timing('.search.primary.response_time',  Date.now() - start, 0.25);
       //console.timeEnd(`⚡⚡ fast query ${query}`);
       return results;
     })
@@ -156,8 +160,8 @@ let firstSearch = (query, limit) => {
 
 let slowSearch = (query, limit) => { 
   const start = Date.now();
+  
  //  console.time(`⚡⚡ second query ${query}`);
-
   return queryBuilder(query, limit, 'cut')
     .then((body) => {
       if (body.hits) {
@@ -167,7 +171,7 @@ let slowSearch = (query, limit) => {
       }
     })
     .then((results) => {
-      statsDClient.timing('.search.fallback.response_time',  Date.now() - start);
+      statsDClient.timing('.search.fallback.response_time',  Date.now() - start, 0.25);
       // console.timeEnd(`⚡⚡ second query ${query}`);
       return results;
     })

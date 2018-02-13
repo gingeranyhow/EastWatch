@@ -1,6 +1,8 @@
 
 config:
-  target: 'http://127.0.0.1:3000' # 'change to AWS env url'   http://54.241.44.50:3000
+  target: 'http://54.241.44.50:3000' # 'change to AWS env url' 
+  # http://127.0.0.1:3000
+  # http://54.241.44.50:3000
   # http:
   #   # Responses have to be sent within 10 seconds or the request will be aborted
   #   timeout: 5

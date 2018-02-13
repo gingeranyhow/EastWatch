@@ -53,32 +53,36 @@ const baseSearch = async function (ctx, next) {
   let updateRedis = true;
 
   let searchPromise = async function() {
-    let redisItem = await redis.get(ctx.query.query);
+    try {
+      let redisItem = await redis.get(ctx.query.query);
 
-    if (redisItem) {
-      console.log('Found in redis');    
-      updateRedis = false;
-      statsDClient.increment('.search.redis', 1, 0.25);
-      statsDClient.timing('.search.redis.response_time',  Date.now() - start, 0.25);
-      return JSON.parse(redisItem);
-    } else {
-      let results = await elastic.firstSearch(ctx.query.query, limit);
-      console.log('Not found in Redis');
-      if (results === undefined || results.length < limit) {
-        statsDClient.increment('.search.withfallback', 1, 0.25);
-        statsDClient.timing('.search.primary.response_time',  Date.now() - start, 0.25);
-        results = await elastic.slowSearch(ctx.query.query, limit);
+      if (redisItem) {
+        console.log('Found in redis');    
+        updateRedis = false;
+        statsDClient.increment('.search.redis', 1, 0.25);
+        statsDClient.timing('.search.redis.response_time',  Date.now() - start, 0.25);
+        return JSON.parse(redisItem);
       } else {
-        statsDClient.increment('.search.withoutfallback', 1, 0.25);
-        // console.log('search primary success: ', ctx.query.query)
-      }  
+        let results = await elastic.firstSearch(ctx.query.query, limit);
+        if (results === undefined || results.length < limit) {
+          statsDClient.increment('.search.withfallback', 1, 0.25);
+          statsDClient.timing('.search.primary.response_time',  Date.now() - start, 0.25);
+          results = await elastic.slowSearch(ctx.query.query, limit);
+        } else {
+          statsDClient.increment('.search.withoutfallback', 1, 0.25);
+          // console.log('search primary success: ', ctx.query.query)
+        }  
 
-      let formattedSearch = results && results.map(item => {
-        return toClientFormat.elasticVideoSummaryToClient(item);
-      });  
+        let formattedSearch = results && results.map(item => {
+          return toClientFormat.elasticVideoSummaryToClient(item);
+        });  
 
-      return formattedSearch;
+        return formattedSearch;
+      } 
+    } catch (err) {
+      console.error(err);
     }
+
     return undefined;
   }
 

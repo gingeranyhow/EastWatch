@@ -6,8 +6,7 @@ const toElastic = require('./elasticFormatter.js');
 const statsDClientModule = require('../server/controllers/helpers/statsDClient.js');
 let statsDClient = statsDClientModule();
 
-let environment = process.env.ENVIR || 'prod';
-let url = (environment === 'prod')
+let url = (process.env.ENVIR === 'prod')
   ? process.env.ES_URL
   : 'localhost:9200';
 

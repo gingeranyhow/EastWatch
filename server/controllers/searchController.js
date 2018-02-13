@@ -1,7 +1,8 @@
 require('dotenv').config();
 const axios = require('axios');
 const statsDClientModule = require('./helpers/statsDClient.js');
-let statsDClient = statsDClientModule();
+const statsDClient = statsDClientModule();
+const redis = require('../../database/redis.js');
 
 // Helper functions
 const elastic = require('../../database/elasticsearch.js');
@@ -31,10 +32,8 @@ const sendSearchEvent = async function(ctx, next) {
 };
 
 // My search function
-
 const baseSearch = async function (ctx, next) {
   let start = Date.now();
-  // console.log('start search:', start);
 
   if (!ctx.query.query) {
     ctx.throw(400, 'Badly formed request. Please include query'); 
@@ -42,55 +41,81 @@ const baseSearch = async function (ctx, next) {
   }
 
   let shouldIncludeTrends = (ctx.state.bucketId === 2);
-  let neededSearchResults = shouldIncludeTrends ? 7 : 10;
+  let limit = 10;
   let searchId = 34;
 
   let trendPromise = shouldIncludeTrends 
     ? axios.get(serviceEndpoints.trendingEndpoint)
     : Promise.resolve(undefined);
 
-  let searchPromise = elastic.firstSearch(ctx.query.query, neededSearchResults)
-    .then((results) => {  
-      if (results === undefined || results.length < neededSearchResults) {
+  let searchInRedis = redis.get(ctx.query.query);
+
+  let updateRedis = true;
+
+  let searchPromise = async function() {
+    let redisItem = await redis.get(ctx.query.query);
+
+    if (redisItem) {
+      console.log('Found in redis');    
+      updateRedis = false;
+      statsDClient.increment('.search.redis', 1, 0.25);
+      statsDClient.timing('.search.redis.response_time',  Date.now() - start, 0.25);
+      return JSON.parse(redisItem);
+    } else {
+      let results = await elastic.firstSearch(ctx.query.query, limit);
+      console.log('Not found in Redis');
+      if (results === undefined || results.length < limit) {
         statsDClient.increment('.search.withfallback', 1, 0.25);
-        console.log('search fallback success: ', ctx.query.query);
-        return elastic.slowSearch(ctx.query.query, neededSearchResults)
+        statsDClient.timing('.search.primary.response_time',  Date.now() - start, 0.25);
+        results = await elastic.slowSearch(ctx.query.query, limit);
       } else {
         statsDClient.increment('.search.withoutfallback', 1, 0.25);
-        console.log('search primary success: ', ctx.query.query)
-        return results;
-      }
-    });
+        // console.log('search primary success: ', ctx.query.query)
+      }  
+
+      let formattedSearch = results && results.map(item => {
+        return toClientFormat.elasticVideoSummaryToClient(item);
+      });  
+
+      return formattedSearch;
+    }
+    return undefined;
+  }
 
   try {
-    let [trend, search] = await Promise.all([trendPromise, searchPromise]);
+    let [trend, search] = await Promise.all([trendPromise, searchPromise()]);
     statsDClient.timing('.search.results.response_time',  Date.now() - start, 0.25);
-    let preFormatStart = Date.now();
-    let formattedSearch = search.map(item => {
-      return toClientFormat.elasticVideoSummaryToClient(item);
-    });
+    // console.log('search', search);
+    // let preFormatStart = Date.now();
+    // Add trends results and slice to ten
 
-    // Add trends results if existing
-    if (shouldIncludeTrends) {
-      formattedSearch = (trend.data.videos).concat(formattedSearch);
-    }
-       
+    let trendVideos = shouldIncludeTrends && trend && trend.data && trend.data.videos;
+
+    let itemsToReturn = trendVideos
+      ? trendVideos.concat(search.slice(0, limit - trendVideos.length))
+      : search
+      
     let response = {
       searchId: searchId,
       trends: shouldIncludeTrends,
-      count: (formattedSearch && formattedSearch.length) || 0,
-      items: formattedSearch
-    }
+      count: (itemsToReturn && itemsToReturn.length) || 0,
+      items: itemsToReturn
+   }
 
     ctx.body = {
       data: response
     }
-    // console.log('Search body complete:', start);
-    statsDClient.timing('.search.format.response_time', Date.now() - preFormatStart, 0.25);
+
+    // statsDClient.timing('.search.format.response_time', Date.now() - preFormatStart, 0.25);
+    if (search && updateRedis) {
+      console.log('updating in redis');   
+      redis.update(ctx.query.query, JSON.stringify(search));
+    }
+    
     next();
-    // Send action to Events Service
   } catch (err) {
-    ctx.throw(500, `Error: Server error`);
+    console.error('here', err);
+    // ctx.throw(500, `Error: Server error`);
   }
 };
 

@@ -1,14 +1,19 @@
-# Project Name
+# EastWatch - Video Search Microservice
 
-The project description
+Search microservice designed for low-latency full-text search across multiple fields. Backed by ElasticSearch. Updates and deletes handled via SQS Message Bus. 
 
-## Roadmap
+## Boundaries
+Microservice: 
+- publishes client-facing search endpoint
+- writes search-relevant events to SQS for Events service
+- handles video updates, creates, deletes via SQS
 
-View the project roadmap [here](LINK_TO_DOC)
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidelines.
+## Tech Stack
+- Koa-backed Node server, deployed to AWS EC2
+- ElasticSearch
+- Redis
+- Testing: Mocha/Chai with Instanbul for coverage
+- Monitoring: New Relic, StatsD 
 
 # Table of Contents
 
